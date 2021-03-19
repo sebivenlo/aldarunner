@@ -1,0 +1,13 @@
+#!/bin/bash
+## to make this effective, symlink this file in the base dir of the
+# pending targets
+if [ $# -lt 1 ]; then
+    echo "usages $0 <targetdir>"
+    exit 0
+fi
+
+cd $(dirname $0)
+target=$1
+if [ -f ./${target}/build-pending ]; then 
+    rm -f ./${target}/build-pending
+fi

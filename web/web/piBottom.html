@@ -1,0 +1,39 @@
+<h2>Maven Reports for the impatient.</h2>
+<div style='background:#333; color:white;margin:.5rem;padding:.5rem'>
+    <p>If you are impatient or otherwise in a hurry, you can create the same reports that
+        are published here. You need to run <b>maven</b> with a particular commandline.</p>
+    <ul>
+        <li>You need to have bash for that, so it will work on both Linux and OS-X (Apple machines).</li>
+        <li>With windows <b>git-bash</b> will do the trick if and only if you have added Java (java 11) and maven to your
+            <a class='doclink' href='https://www.computerhope.com/issues/ch000549.htm#windows10' 
+               target='empty' style='color:white;'> %PATH% variable</a>.
+            <br/>
+            Git Bash comes with the git for windows installation.
+        </li>
+        <li><strong style='color:#c00'>Important</strong> The sebipom version needs to be at least at version <code>2.3.8</code>. 
+            Adapt the pom.xml file in your project accordingly.</li>
+    </ul>
+
+<p>
+If for example your project is named <b>beerEnum</b> and your group is <b>g002</b> then this will do the trick:
+<br/>
+Open the command line (terminal in Linux or OSX, git-bash in Windows),<br/> navigate to the <b>&lt;project directory&gt;</b>,
+such that the current directory contains the pom.xml file of the project, </br>then do</p>
+<pre class='term'>
+  app=beerEnum
+  grp=g002
+  mvn -fn -P pit -P jacoco -DgenerateReports=true   \
+      -Dmaven.javadoc.skip=true    -Djacoco.report.title="Coverage report for \${app} \${grp}" \
+      -Dsurefire.report.title="Surefire Report ${app} ${grp}"  \
+      test jacoco:report surefire-report:report-only pitest:mutationCoverage  site 
+</pre>
+The back slashes make sure that
+the lines are understood as one long command.<br/>
+
+Once you have executed these commands, you should be able to find the reports under your 
+<b>&lt;project directory&gt;/target/site</b>. Reverse the slashes and prefix the <b>app</b> and <b>grp</b> commands with <code >set</code> if you are on Windows.
+</div>
+<script src="js/piechart.js"></script>
+</body>
+</html>
+

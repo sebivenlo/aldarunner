@@ -1,0 +1,30 @@
+#!/bin/bash
+source config.properties
+## requeue a task by removing the last-changed-revision.txt and then
+## put a file named so that it can be understood by the worker.
+
+if [ $# -lt 1 ]; then
+    echo usage: $0 grp/app
+    exit 0
+fi
+ogrp=''
+grp=''
+#while [ $# -gt 0 ]; do
+    project=$1; shift
+    if [ -e changed/${project}/last-changed-revision.txt-checked ]; then
+	rm -f changed/${project}/last-changed-revision.txt-checked
+	ssh ${publish_host} ${publish_basedir}/set-pending  ${project} &
+    fi
+    grp=$(basename $(dirname $(dirname $project)))
+#    if [ "${ogrp}" != "${grp}" ]; then
+	fname="/home/aldarunner/queue/home.svn.2021.prc2.${grp}@10000"
+	echo requeued > ${fname}
+	ogrp=$grp
+ #   fi
+#done
+## make sure last or only is queued
+#fname="/home/aldarunner/queue/home.svn.2021.prc2.${grp}@10000"
+#echo requeued > ${fname}
+#echo $grp
+# exit 0
+

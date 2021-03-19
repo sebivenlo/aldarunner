@@ -1,0 +1,36 @@
+#!/bin/bash
+source config.properties
+source ~/teambin/sebirunner.d/sebirunner.lib
+
+while [ $# -ge 1 ]; do
+    grp=$1; shift
+    if [ ! -d ${grp} ]; then
+	echo "${grp} is not a sub directory, are you in the correct dir?"
+	exit 1
+    fi
+    svnup ${grp} # just once, not done by arunner
+    ## build if author != www-data
+    ## if there is no changed file
+    ## or if new revision is newer than rev of changed file.
+    for app in $(cat apps-list.csv | awk 'BEGIN { FS = "," } ; { print $1 }') ; do
+	author=$(svn info --show-item last-changed-author ${grp}/${app})
+	if [ "${author}" = "www-data" ]; then
+	    echo -e "\e[33mNO OWN work for ${grp} ${app} in revision ${rev} \e[m"
+	    ssh ${publish_host} ${publish_basedir}/clear-pending ${grp}/${app}
+	    continue;
+	fi
+	lrev=$(svn info --show-item last-changed-revision ${grp})
+	## if there is a revision
+	if [ -s changed/${grp}/${app}/last-changed-revision.txt-checked ]; then
+	    source changed/${grp}/${app}/last-changed-revision.txt-checked
+	    if [ ${Last_Changed_Rev} -eq ${lrev} ]; then
+		## but the build is up to date
+		echo -e "\e[33mNO NEW work for ${grp}/${app}\e[m"
+		ssh ${publish_host} ${publish_basedir}/clear-pending ${grp}/${app}
+		continue
+	    fi
+	fi
+	fasterbuilder ${grp} ${app}
+    done
+done
+    

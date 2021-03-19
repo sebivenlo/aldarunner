@@ -1,0 +1,9 @@
+#!/bin/bash
+if [ $# -lt 1 ]; then
+    echo "usage daysdue <time stamp>"
+    exit 1
+fi
+due=$(date +%s --date="$1")
+now=$(date +%s)
+hours=$(((${due}-${now})/(3600)))
+echo $hours

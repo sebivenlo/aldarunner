@@ -1,0 +1,24 @@
+#!/bin/bash
+source ~/teambin/sebirunner.d/sebirunner.lib
+
+while [ $# -ge 1 ]; do
+    grp=$1; shift
+    if [ ! -d ${grp} ]; then
+	echo "${grp} is not a sub directory, are you in the correct dir?"
+	exit 1
+    fi
+    svnup ${grp} # just once, not done by arunner
+    rev=$(svn info --show-item revision ${grp})
+    for app in $(cat apps-list.txt | sort -u) ; do
+	if [ -s ${grp}/${app}/last-changed-revision.txt ]; then
+	    source ${grp}/${app}/last-changed-revision.txt
+	    if [ $rev -le ${Last_Changed_Rev} ]; then
+#		arunner.sh ${grp} ${app}
+		fasterbuilder ${grp} ${app}
+	    else
+		echo -e "\e[45;37mNot new ${grp}/${app}\e[m"
+	    fi
+	fi
+    done
+done
+    

@@ -1,0 +1,7 @@
+#!/bin/bash
+h=''
+for x in $(ls -tr /home/aldarunner/queue/ | awk 'BEGIN { FS = "." }; { print $5 }') ; do
+    h="${h} ${x}"
+done
+
+echo ${h}

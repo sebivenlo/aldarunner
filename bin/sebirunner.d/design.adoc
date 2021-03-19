@@ -1,0 +1,26 @@
+= Analysis and Design
+
+Funtion requirements
+
+* compile code and tests and run tests
+* publish test reports
+* compute test summary and coverage summary
+* conditionally run AB and BA tests (setup)
+
+Params to tests runner:
+
+* test type (BB,BA,AB,B0..Bn)
+* grp
+* app
+
+How to run tests
+* mvn -q -fn -P jacoco test jacoco:report surefire-report:report-only site -DgenerateReports=false
+* create test summary file in .../site
+`cat target/surefire-reports/*.txt | aldatestsummary`
+
+base for test is BB
+such that for every test in BB there should be a failing one in one of Bx,
+otherwise the test never fails.
+This allows to fix the API without having to required specific test names.
+
+Report is somethinng like SomeTest.testXYZ never fails, are you sure you are testing anything there?

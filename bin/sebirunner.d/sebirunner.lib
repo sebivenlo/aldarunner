@@ -1,0 +1,474 @@
+#!/bin/bash
+
+function svnup(){
+    local SVN=/usr/bin/svn
+    ## collect svn incoming (Add, Delete or Update) into ${g}/incoming.r<revision number>
+    while [ "$#" -gt 0 ] ; do
+	local g=$1; shift
+	if [ -d ${g}/.svn ]; then
+	    ${SVN} cleanup -q ${g}
+	    ${SVN} cleanup -q --remove-ignored ${g}
+	    ${SVN} up ${g} |  grep -P '^[ACDGMU] ' | tee ${g}/incoming.tmp
+	    ${SVN} info ${g} | tee ${g}/svninfo.current
+	    ## save and extract revision number
+	    rev=$(${SVN} info --show-item revision ${g})
+	    ## just the number
+	    ## rename the incoming file
+	    mv ${g}/incoming{.tmp,.${rev}}
+	    ## for all project dirs write last-changed-revision.txt that can be sourced by bash
+	    svninfo2symbols.sh ${g}
+	fi
+    done
+}
+
+##
+## @param arena dir part to filter out
+## @param app
+## @param grp
+## @param input file to process
+## @output
+function error_to_pre(){
+    local arena=$1; shift
+    local app=$1; shift
+    local grp=$1; shift
+    local input=$1; shift
+    local output=$1; shift
+    cat - <<EOF > ${output}
+<html>
+ <head>
+    <title>${grp} ${app} Maven Compiler Output</title>
+ </head>
+<body>
+<h1>${grp} ${app} Compiler Errors</h1>
+The errors below occured during compilation of business code and test code.
+Further processing is impossible.
+<pre style='color:#a00'>
+EOF
+    cat ${input} | sed -e"s#${arena}##g" >> ${output}
+
+    cat - <<EOF >> ${output}
+</pre>
+</body>
+EOF
+}
+
+##
+## @param arena dir part to filter out
+## @param app
+## @param grp
+## @param input file to process
+## @output
+function run_to_pre(){
+    local arena=$1; shift
+    local app=$1; shift
+    local grp=$1; shift
+    local input=$1; shift
+    local output=$1; shift
+    cat - <<EOF > ${output}
+<html>
+ <head>
+    <title>${grp} ${app} Maven Test Run Output</title>
+ </head>
+<body>
+<h1>${grp} ${app} Test run output, maybe harmless</h1>
+The output you see here is by the output produced by the tests,
+either using simple print(ln) or errors reported by the test runner.
+<pre style='color:#00a'>
+EOF
+    cat ${input} | sed -e"s#${arena}/##g" | sed -e 's#\[ERROR\]#<span style="color:red">[ERROR]</span>#' >> ${output}
+
+    cat - <<EOF >> ${output}
+</pre>
+</body>
+EOF
+}
+
+
+## test if the summary als nummer of tests == passed tests
+## @param csv file to evaluate
+function allTestsGreen(){
+    local csv=$1; shift
+    local OLDIFS="${IFS}"
+    if [ ! -e "${csv}" ] ; then
+        return 1
+    fi
+    x=$(tail -1 $csv)
+    IFS=',' read -ra LINE <<< "$x"
+    IFS="${OLDIFS}"
+    if [ "${LINE[0]}" == "${LINE[1]}" -a "${LINE[0]}" != "0" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# copy the files in the project root directory as given by the solution.
+# @param src source dir
+# @param target dir
+function copyDataFiles(){
+    local src=$1; shift
+    local target=$1; shift
+    for i in $(find ${src} -maxdepth 1 -type f); do
+	cp ${i} ${target}
+    done
+}
+
+# @param testmode BB etc
+# @parm grp group
+# @param app application
+# return ring, location where tests are to be run.
+function prepTests(){
+    local testMode=$1; shift
+    local grp=$1; shift
+    local app=$1; shift
+    local ring="${ARENA}/${grp}/${app}-${testMode}"
+    ## do the actual prep and return ring
+    mkdir -p ${ring}/src/{main,test}/{java,resources}
+    cat ${solutions}/${app}/pom.xml | sed -e "s#solution#${grp}#" > ${ring}/pom.xml
+    copyDataFiles ${solutions}/${app} ${ring}
+    case ${testMode} in
+	BB) ## student's  tests on student's code
+	    rsync -aq ${grp}/${app}/src/main/  ${ring}/src/main/
+	    rsync -aq ${grp}/${app}/src/test/  ${ring}/src/test/
+	    ;;
+	AB) ## teacher's tests on student's code
+	    rsync -aq ${grp}/${app}/src/main/  ${ring}/src/main/
+	    rsync -aq ${solutions}/${app}/src/test/  ${ring}/src/test/
+	;;
+	BA) ## student's  tests on teacher's code
+	    rsync -aq ${solutions}/src/main/ ${ring}/src/main/
+	    rsync -aq ${grp}/${app}/src/test/ ${ring}/src/test/
+	;;
+	B0) ## student's test on initial code
+	    rsync -aq ${weektasks}/${app}/src/main/ ${ring}/src/main/
+	    rsync -aq ${grp}/${app}/src/test/ ${ring}/src/test/
+	;;
+	B1|B2|B3|B4|B5) ## student's test on failing code
+	    jver="java${testMode:1:1}"
+	    if [ -d "${solutions}/${app}/src/main/$jver" ]; then
+		## default resources
+		rsync -aq ${solutions}/${app}/src/main/resources/ ${ring}/src/main/resources/
+		## java Bx version
+		rsync -aq ${solutions}/${app}/src/main/${jver}/ ${ring}/src/main/java/
+		## student tests
+		rsync -aq ${grp}/${app}/src/test/ ${ring}/src/test/
+	    fi
+	    ;;
+    esac
+    ## produce return value
+    echo "${ring}"
+}
+
+##
+## copies from solution everything except <student project>/src
+## @param arena location on ramdisk
+## @param grp sic
+## @param app sic
+## @param studentproject sic
+function prepArenaForRecipe(){
+    local arena=$1; shift
+    local grp=$1; shift
+    local app=$1; shift
+    local studentproject=$1; shift
+    echo "prep arena at ${arena}/${grp}/$app/"
+    mkdir -p ${arena}/${grp}/$app/
+    rsync -a --exclude solutions/${app}/${studentproject}/src solutions/${app}/ ${arena}/${grp}/$app/
+    rsync -a ${grp}/${app}/${studentproject}/src/  ${arena}/${grp}/$app/${studentproject}/src/
+}
+
+## Create test summary file
+## sideeffect: creates target/site dir
+function makeTestSummary(){
+    local project=$1
+    # make sure there is a site
+    local wd=$(pwd)
+    cd ${project}
+    mkdir -p target/site
+    if compgen -G "target/surefire-reports/*.txt" > /dev/null ; then
+	cat target/surefire-reports/*.txt | sebitestsummary > target/site/testsummary.csv
+    else
+	echo -e "tests,passed,fails,errs,skips,time\n0,0,0,0,0,0" > target/site/testsummary.csv
+    fi
+    cd ${wd}
+}
+
+# @param testmode BB etc
+# @parm grp
+# @param app
+function runTests(){
+    local testMode=$1; shift
+    local ring=$1; shift
+    local grp=$1; shift
+    local app=$1; shift
+    echo "running test ${testMode} in ring ${ring}"
+    (
+	cd ${ring}
+	timeout 60s mvn -fn -q -P jacoco test jacoco:report \
+		-Djacoco.report.title="Coverage report for ${app} ${grp}, test mode ${testMode}" \
+		-Dsurefire.report.title="Surefire Report for ${app} ${grp}, test mode ${testMode}" \
+		surefire-report:report-only -DgenerateReports=true \
+		site -DgenerateReports=false | tee mvn-run-out.txt | grep "COMPILATION ERROR" > compiler-error.txt
+	exit_code=$?
+	if [ $exit_code -eq 124 ]; then
+            echo -e "\n\n ${grp} ${app} ${testMode} THE TESTS TIMED OUT, REPORTING MAY BE  INCOMPLETE\n\n" > mvn-run-out-timeout.txt
+            cat  mvn-run-out.txt >>  mvn-run-out-timeout.txt
+            mv mvn-run-out-timeout.txt  mvn-run-out.txt
+	fi
+	mkTestSummary
+	mv compiler-error.txt mvn-run-out.txt target/site
+    )
+}
+
+## run student tests on student code
+## use case: alda, run before teacher tests.
+## @param project to run mvn tests on
+##
+function runBBTest (){
+    local arena=$1; shift
+    local grp=$1; shift
+    local app=$1; shift
+    local studentproject=$1; shift
+    local wd=$(pwd)
+    cd ${arena}/${grp}/${app}
+    echo -e "\e[44;37mRunning BBtest in dir $(pwd)\e[m"
+    timeout 60s mvn -fae -P jacoco \
+	-Djacoco.report.title="Coverage report for ${app} ${grp}" \
+	-Dsurefire.report.title="Surefire Report ${app} ${grp}" \
+	clean test jacoco:report surefire-report:report-only jacoco:check@default-check \
+	| tee mvn-run-out.txt | grep "COMPILATION ERROR" > compiler-error.txt
+    # collect output files to site dir
+    makeTestSummary ${studentproject}
+    mv mvn-run-out.txt compiler-error.txt ${studentproject}/target/site
+    # add the maven site resources, to save on build time
+    # tinysite ${studentproject}
+    ## rename the site for later publish step
+    mv ${studentproject}/target/site{,BB}
+    # restore working dir
+    cd ${wd}
+}
+
+## Run test with special pom file, defining all maven modules
+## Runs the module project in pom order. Fails on 'BB' test.
+##
+## The 
+## use case: modular project with separate student and teacher module (from solution).
+## @param arena where to run
+## @param grp sic
+## @param app sic
+## @param teacherpom name of special pom file
+## @param studentproject sic
+## @param teacherproject sic
+##
+function runAllTest (){
+    local arena=$1; shift
+    local grp=$1; shift
+    local app=$1; shift
+    local studentproject=$1; shift
+    local minCoverage=$1; shift
+    local teacherpom=$1; shift
+    local teacherproject=$1; shift
+    if [ -z "${teacherproject}" ]; then
+	echo "missing teacherproject"
+	exit 1
+    fi
+    local wd=$(pwd)
+    cd ${arena}/${grp}/${app}
+    echo -e "\e[44;37mRunning BBtest in dir $(pwd) studentproject ${studentproject}\e[m"
+    timeout 60s mvn -q -fn -P jacoco \
+	-Djacoco.report.title="Coverage report for ${app} ${grp}" \
+	-Dsurefire.report.title="Surefire Report ${app} ${grp}" \
+	clean test > mvn-run-out.txt
+    grep "COMPILATION ERROR" mvn-run-out.txt > compiler-error.txt
+    mkdir -p ${studentproject}/target/site
+    if [ -s compiler-error.txt ]; then
+	error_to_pre ${arena} ${grp} ${app} mvn-run-out.txt  ${studentproject}/target/site/compiler-error.html
+    else
+	run_to_pre ${arena} ${grp} ${app} mvn-run-out.txt  ${studentproject}/target/site/mvn-run-out.html
+	mvn -q -Dsurefire.report.title="Surefire Report ${app} ${grp}" surefire-report:report-only
+	mvn -q -fn -P jacoco jacoco:report
+	makeTestSummary ${studentproject}
+	# tinysite ${studentproject}
+    fi
+    # collect output files to site dir
+    mv ${studentproject}/target/site{,BB}
+    if allTestsGreen ${studentproject}/target/siteBB/testsummary.csv; then
+	if checkCoverage ${minCoverage} ${studentproject}; then
+	    echo -e "\e[42;37mRunning ABtest in dir $(pwd)\e[m"
+	    timeout 60s mvn -f ${teacherpom} -q -fn \
+		    -Dsurefire.report.title="Teacher Test Report ${app} ${grp}" \
+		    test surefire-report:report-only \
+		    > mvn-run-out.txt
+	    mkdir -p ${teacherproject}/target/site
+	    makeTestSummary ${teacherproject}
+	    # add the maven site resources, to save on build time
+	    tinysite ${teacherproject}
+	    ## rename the site for later publish step
+	    mv ${teacherproject}/target/site{,AB}
+	    # restore working dir
+	else
+	    echo "failed to meet coverage ${minCoverage}"
+	fi
+    else
+	echo "failed to meet all tests pass"
+    fi
+    cd ${wd}
+}
+
+## run teacher (maybe black box tests) on student code
+## typically after sufficient coverage.
+## @param project to run mvn tests on
+function runTeacherTest(){
+    local arena=$1; shift
+    local grp=$1 ; shift
+    local app=$1 ; shift
+    local teacherproject=$1; shift
+    local wd=$(pwd)
+    cd ${arena}/${grp}/${app}
+    #    echo "building  ${teacherproject} with timeout"
+    timeout 60s mvn -f teacher-pom.xml -q -ff \
+	    -Dsurefire.report.title="Teacher Test Report ${app} ${grp}" \
+	    clean test surefire-report:report-only \
+	    > mvn-run-out.txt
+    makeTestSummary ${teacherproject}
+    mv mvn-run-out.txt ${teacherproject}/target/site
+    tinysite ${teacherproject}
+    mv ${teacherproject}/target/site{,AB}
+    echo "result in $(pwd)/${teacherproject}/target/siteAB"
+    cd ${wd}
+}
+
+##
+## @param grp sic
+## @param app sic
+## publish all site (BB, AB, ...)
+function publishResults() {
+    local publish_host=$1; shift
+    local publish_basedir=$1; shift
+    local arena=$1; shift
+    local grp=$1; shift
+    local app=$1; shift
+    if [ 'builder' = "${USER}" ]; then ## only when user is builder
+        for s in $(find ${arena}/${grp}/${app} -name "site??" -type d); do
+	    ## rsync to publish_host, publish_basedir,
+	    local site_name=$(basename ${s})
+	    ssh ${publish_host} rm -fr ${publish_basedir}/${grp}/${app}/${site_name}
+	    ssh ${publish_host} mkdir -p ${publish_basedir}/${grp}/${app}/${site_name}
+	    rsync -rplogD --omit-dir-times --del ${s}/ ${publish_host}:${publish_basedir}/${grp}/${app}/${site_name}/
+	done
+	ssh ${publish_host} /home/hom/teambin/fixsurefireresources.sh ${publish_basedir}/${grp}/${app}
+	ssh ${publish_host} ${publish_basedir}/updateTestSummary.sh ${grp}
+	ssh ${publish_host} ${publish_basedir}/jacocoSummary ${grp}
+    else
+	rm -fr ${publish_basedir}/${grp}/${app}
+        for s in $(find ${arena}/${grp}/${app} -name "site??" -type d); do
+	    ## rsync to publish_host, publish_basedir,
+	    local site_name=$(basename ${s})
+	    mkdir -p ${publish_basedir}/${grp}/${app}/${site_name}/
+	    rsync -a ${s}/ ${publish_basedir}/${grp}/${app}/${site_name}/
+	done
+	fixsurefireresources.sh ${publish_basedir}/${grp}/${app}
+    fi
+    ssh ${publish_host} rm -f ${publish_basedir}/${grp}/${app}/build-pending
+}
+
+## check if coverage meet project requirement
+
+function checkCoverage(){
+    local minCoverage=$1; shift
+    local project=$1; shift
+    local coveragecsv=$(find ${project}/target/ -name jacoco.csv)
+    if [ -s "${coveragecsv}" ]; then
+	
+	coverage=$(jacocosummary ${coveragecsv})
+	echo "Coverage=${coverage}"
+	if [ $(($coverage+0)) -ge ${minCoverage} ]; then
+	    return 0
+	else
+	    return 1
+	fi
+    else
+	echo jacoco.csv not found
+	return 1
+    fi
+}
+
+function checkCoverageBB(){
+    local minCoverage=$1; shift
+    local project=$1; shift
+    local coveragecsv=$(find ${project}/ -name jacoco.csv)
+    if [ -s "${coveragecsv}" ]; then
+	
+	coverage=$(jacocosummary ${coveragecsv})
+	echo "Coverage=${coverage}"
+	if [ $(($coverage+0)) -ge ${minCoverage} ]; then
+	    return 0
+	else
+	    return 1
+	fi
+    else
+	echo jacoco.csv not found
+	return 1
+    fi
+}
+
+##
+## check if update produces new work to be done
+## Work done is flagged with check file (last-changed-revision.txt-checked),
+## which is compared with orginal last-changed-revision.txt.
+## If the files differ or the check file does noet exists, work is to be done
+## and checked file is updated
+## @param publish_host to update revision file
+## @param publish_basedir sic
+## @grp of which to check
+## @app to check
+function checkWork(){
+    local publish_host=$1; shift
+    local publish_basedir=$1; shift
+    local grp=$1; shift
+    local app=$1; shift
+    local svninfofile="${grp}/${app}/last-changed-revision.txt"
+    if [ -s ${svninfofile} ]; then
+	if diff -q -N ${svninfofile}{,-checked} > /dev/null ; then
+    	    echo -e "\e[43mNo new work after publish for ${grp}/${app} by check diff, skipping build\e[m"
+    	    return 1
+	fi
+	cp ${svninfofile}{,-checked}
+	## update info on publish host
+	if [ "builder" = "${USER}" ]; then ## only when user is builder
+	    ssh ${publish_host} mkdir -p ${publish_basedir}/${grp}/${app}
+	    scp ${svninfofile} ${publish_host}:${publish_basedir}/${grp}/${app} >/dev/null ||  exit 1
+	fi
+
+	## cp info file
+	## interpret last author
+	source ${svninfofile}
+	if [ "$Last_Changed_Author" = "www-data" ]; then
+	    echo -e "\e[43mNo new work after publish for ${grp}/${app} by author, skipping build\e[m"
+	    return 1
+	else
+	    return 0
+	fi
+    fi
+    return 0
+}
+
+function prep(){
+    local swroot=$1; shift
+    local arena=$1; shift
+    local grp=$1; shift
+    local app=$1; shift
+    local siteType=$1; shift
+}
+
+function mvnOutToHtml(){
+    local arena=$1; shift
+    local grp=$1; shift
+    local app=$1; shift
+
+    for sf in $(find ${arena} -name mvn-run-out.txt ); do
+	dir=$(dirname ${sf})
+	outfile="${dir}/mvn-run-out.html"
+	run_to_pre ${arena} ${app} ${grp} ${sf} ${outfile}
+    done
+
+}

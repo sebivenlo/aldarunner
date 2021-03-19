@@ -1,0 +1,3 @@
+#!/bin/bash
+
+ssh -A fontysvenlo.org svnwrap svn up /home/sebi/web

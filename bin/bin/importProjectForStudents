@@ -1,0 +1,37 @@
+#!/bin/bash
+# Inject project template in student repositories
+
+if [[ $# < 5 ]]; then
+    echo usage: "importProjectForStudents.sh <toYear> <toReposMilestone> <exercise> <week> <osirixRepos> e.g. importProjectForStudents.sh 2019 prc2m1 fraction wk01 realjava"
+    exit 1
+fi
+
+toYear=$1
+toReposMilestone=$2
+exercise=$3
+week=$4
+osirixRepos=$5
+
+TARGETDIR=/home/svn/$toYear/$toReposMilestone/$exercise
+SVNBASE=svn+ssh://osirix/home/modules
+REPOS=${SVNBASE}/${osirixRepos}/svnroot/trunk/30_practical
+
+svn export --force ${REPOS}/${exercise}/solution ${TARGETDIR}
+
+cd ${TARGETDIR}
+./doexports 
+cd ..
+
+#wd=$(pwd)
+#project_zip=${exercise}.zip
+#project_name=$(basename ${project_zip} .zip)
+
+#for group in g*;
+#do
+#	echo "$week ${group} ${project_zip} to ${project_name}"
+#	cd ${wd}/${group}/tmp/trunk/${week}
+#	pwd
+#
+#	sudo -u www-data unzip ${wd}/${project_zip}
+#	sudo -u www-data svn import -m"'import ${week} project ${project_name}'" $(basename ${project_zip} .zip) file://${wd}/${group}/trunk/${week}/${project_name}
+#done

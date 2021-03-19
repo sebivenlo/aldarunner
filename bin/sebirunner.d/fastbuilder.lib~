@@ -1,0 +1,37 @@
+#!/bin/bash
+
+## @param ${grp} like g123
+## @param ${app} like wk01/hello
+function createArena(){
+    local grp=$1; shift
+    local app=$1; shift
+    local arena=${RAMDISK}/sebirunner-${pid}/${grp}/${app}
+    mkdir -p ${ARENA}
+    echo ${ARENA}
+}
+
+## @param arena
+## @param studentCodeDir
+## @param solutionDir
+## @param grp
+## @param app
+function buildAll(){
+    local arena=$1; shift
+    local  studentCodeDir=$1; shift
+    local solutionDir=$1; shift
+    local grp=$1; shift
+    local app=$1; shift
+    local startDir=$(pwd)
+    
+    # enter  arena
+    cd ${arena}
+    ## start with BB test
+    ## get teacher pom
+    cat  ${solutionDir}/pom.xml | sed -e  "s/solution/${grp}/" > pom.xml
+    mkdir src/
+    rsync -aq ${studentCodeDir}/src/ src/
+    ## first maven run
+    mvnd -q -Dsurefire.timeout=20 -P jacoco test -Djacoco.report.title="Coverage report" jacoco:report surefire-report:report-only
+    mv target/surefire-reports/ target/site/
+    mvnd --stop
+}
