@@ -1,0 +1,21 @@
+= Publish_assignments_from_Peerweb
+:showtitle:
+
+*Name* {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}| Publish_assignments_from_Peerweb +
+*Actor* {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {sp}| System +
+*Description* {nbsp} {nbsp} {sp} | The publish process for the system +
+*Pre-condition* | Systemm has succesfully received the assignments +
+
+*Scenario* +
+{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}1. System sets building flag in publishing environment and puts the assignments in a queue. +
+{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}2. System runs the comitted assignments through a build process. +
+{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}3. System runs svn checkout on build server. +
+{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}4. System runs the comitted files through a build process. +
+{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}5. System executes mvn build on build server. +
+{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}6. System publishes files. +
+
+*Result*
+{nbsp} {nbsp}  The System has been comitted it's files. +
+
+*Exceptions* 3 Connection to build server lost +
+{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} 3.1 Use case ends here. +

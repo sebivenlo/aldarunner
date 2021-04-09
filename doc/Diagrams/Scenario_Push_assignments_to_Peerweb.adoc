@@ -1,0 +1,21 @@
+= Push_assignments_to_Peerweb
+:showtitle:
+
+*Name* {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}| Push_assignments_to_Peerweb +
+*Actor* {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {sp}| Teacher +
+*Description* {nbsp} {nbsp} {sp} | The svn commit process for the Teacher user. +
+*Pre-condition* | Teacher is connected to the Osirix service and Peerweb +
+
+*Scenario* +
+{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}1. Teacher selects and checksout the files from the Osirix Service. +
+{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}2. System sends files to the Teacher device. +
+{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}3. Teacher commites received files to student repository on the Peerweb environment. +
+
+
+*Result*
+{nbsp} {nbsp}  The Teacher has been comitted his files. +
+
+*Exceptions* 1 The Teachers's credentials were invalid. +
+{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} 1.1 Use case ends here. +
+{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} 3 The Teachers's credentials were invalid. +
+{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} 3.1 Use case ends here.

@@ -1,0 +1,20 @@
+= Read_Test_Report
+:showtitle:
+
+*Name* {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}|  Read_Test_Report +
+*Actor* {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {sp}| Student +
+*Description* {nbsp} {nbsp} {sp} | The read test report process for the Student user. +
+*Pre-condition* | Student is logged in the versioning system & has commited his assignments +
+
+*Scenario* +
+{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}1. The system queues the test reports on the build server. +
+{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}2. System builds a test report on the assignments. +
+{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}3. Student selects the assignment to read the test report on +
+{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}4. System gets specific test report +
+{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}5. Student read test report  +
+
+*Result*
+{nbsp} {nbsp}  The actor has read his test report. +
+
+*Exceptions* 3 The actor's credentials were invalid. +
+{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} 3.1 Use case ends here.
