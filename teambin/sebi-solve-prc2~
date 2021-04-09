@@ -1,0 +1,11 @@
+#!/bin/bash
+
+x=$(pwd)
+IFS='/' read -ra PARTS <<< "$x"
+probepath=~/sebi/${PARTS[4]}/trunk/30_practical/builds/${PARTS[6]}/${PARTS[8]}/examproject/${PARTS[9]}
+echo $probepath
+tree ${probepath}/src
+rmdir -f src
+mkdir -p src
+rsync -av ${probepath}/src/ src/
+

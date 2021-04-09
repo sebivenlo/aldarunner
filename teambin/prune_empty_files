@@ -1,0 +1,8 @@
+#!/bin/bash
+
+for file in $(find examsolution -name "*.java"); do
+    if  $(head -1 ${file} | grep -q '//Start Solution') ; then
+	echo "found dropped test  ${file}"
+	rm -fr ${file}
+    fi
+done

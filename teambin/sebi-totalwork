@@ -1,0 +1,30 @@
+#!/usr/bin/perl -w
+
+my ($app,$coverage,$pub,$due);
+my ($tests, $fails,$errs,$skips,$time,$passed);
+my ($sumtests, $sumfails,$sumerrs,$sumskips,$sumtime,$sumpassed);
+print qq(#tests,passed,fails,errs,skips,time\n);
+$sumpassed=0;
+$sumtests=0;
+$sumfails=0;
+$sumerrs=0;
+$sumskips=0;
+$sumtime=0.0;
+open(APPS,"<apps-list.csv") or die qq(cannot open apps-list.csv\n);
+while(<APPS>){
+  chomp;
+  if ( m/^#/) {continue;}
+  ($app,$tests,$passed,$fails,$errs,$skips,$time,$coverage,$pub,$due)=split/,/;
+  $sumpassed +=$passed;
+  $sumtests += $tests;
+  $sumfails += $fails;
+  $sumerrs += $errs;
+  $sumskips += $errs;
+  $sumtime += $time;
+}
+close(APPS);
+open(CSV, ">sebi-totalwork.csv") or die qq(cannot open file 'sebit-totawok.csv' for write\n);
+print CSV qq(#tests,passed,fails,errs,skips,time\n);
+print CSV qq($sumtests,$sumpassed,$sumfails,$sumerrs,$sumskips,$sumtime\n);
+print qq($sumtests,$sumpassed,$sumfails,$sumerrs,$sumskips,$sumtime\n);
+close(CSV);

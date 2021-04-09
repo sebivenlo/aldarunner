@@ -1,0 +1,88 @@
+#!/bin/bash
+
+## This script assumes that the JAVA_HOME environment variable is set
+##   and that the PATH contains ${JAVA_HOME}/bin
+## The script reads the file /usr/lib/jvm/javaversion.config
+## which tells it what each java version is on your machine. See the accompanying
+## README.md file
+## It could easily be extended to include Java 9 and 10 too, buy at
+## the time of writing I see little point because 12 is the current open JDK
+## and 11 the LTS version. J8 is in because it is the default for many still.
+##
+## Usage: eval $(scriptname) e.g. eval $(J12)
+
+
+contains(){
+    local needle="$1"
+    shift
+    while [[ $# > 0 ]]; do
+	haystack="$1"; shift
+	if [[ $needle == $haystack ]]; then
+	    return 0
+	fi
+    done
+    return 1
+}
+
+## for easy config, declare your java paths here
+
+jvmdir=/usr/lib/jvm
+source ${jvmdir}/javaversions.conf
+
+
+## get my name
+thisname=$(basename $0)
+
+OPATH=${PATH}
+
+if [ "$#" = 0 ]; then
+    thisjava=${!default}
+    echo  using default >&2
+else
+    thisjava=$1; shift
+    if [ "$thisjava" = "default" ]; then
+      thisjava=${!thisjava}
+    fi
+fi
+
+choix=""
+while read line; do
+    choice=(${line//=/ })
+    choix="${choix} ${choice[0]}"
+done < <(cat ${jvmdir}/javaversions.conf)
+
+if contains $thisjava ${choix}; then
+  thisjava=${!thisjava}
+    # NJAVA_HOME=${jvmdir}/${!thisjava}
+else
+  # unravel
+  thisjava=${!default}
+  thisjava=${thisjava}
+fi
+
+OJAVA_BIN=JAVA_HOME/bin
+
+# echo "chosen : ${thisjava}" >&2
+NJAVA_HOME=${jvmdir}/${thisjava}
+np=''
+
+
+IFS=':' read -ra parray <<< "$PATH"
+np=""
+sep=""
+if [ ! -z "${JAVA_HOME}" ]; then
+    for pp in "${parray[@]}"; do
+	if [ "${pp}" != "${JAVA_HOME}/bin" ]; then
+	    np="${np}${sep}${pp}"
+	    sep=":"
+	fi
+    done
+else
+    np=${PATH}
+fi
+## edit path to use the new java_home
+np="${NJAVA_HOME}/bin:${np}"
+
+## output modified env variables.
+echo export JAVA_HOME=$NJAVA_HOME
+echo export PATH=${np}

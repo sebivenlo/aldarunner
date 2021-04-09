@@ -1,0 +1,242 @@
+\documentclass{article}
+\usepackage{svn,forest,todonotes}
+
+\SVNdate $Date$
+\setlength\parindent{0pt}
+\title{AMC documentation\\auto-multiple-choice}
+\author{Linda Urselmans}
+\begin{document}
+\maketitle
+\begin{center}
+	\centering
+	Version 1.1
+\end{center} 
+\newcommand{\todoP}[2][=1]{\todo[inline, color=green!40]{#2}}
+\section{Introduction}
+\todoP{P: add a note: authoring all texlive installation incl. mac and windows. only pre- and postprocessing is by default on an ubuntu-based linux. Also: Min multiple choice version (1.4, ...)}
+\todo[inline]{just for me to remember: \\
+build exam: have everything working so xelatex source.tex works fine, then start amc gui and create a new MC\_Project for the exam, use symlink or copy-paste everything from /builds/YYYYMMDD to /MCPROject/CURRENTEXAM. The /Examdir ref will allow AMC to search for files in the /40 places. Click update documents once you have a new AMC MC project. Then Check by clicking on Question button. Looks fine? Then you enter the number of papers like 63, generate them by update documents again. Then click on layout detection. Popup message - say no. Click print papers, print to file, select all papers, and create a copies dir inside the MC project exam folder, and save the "printed" files inside that copies folder. Navigate to copies, and enter eprintready (script to do magic and create additional files to be given to the examiners). Should have 3 additional files; forms.pdf, and two others. If all is well, zip the folder and put it on a stick. Fill out the tentamen bogen thingymagingy and head downstairs hand everything in and Bob's your uncle. Ofc everything works flawlessly. Tentamenbogen should be in toyexam 10 organizational}
+
+\todo[inline]{For me to remember even more: make a decision: either spend time on explaining the current structure (how sebicoverpage, coverpageanon, onecolumnblah, twocolumnblah, bla bla and blurb all work together (they don't, defaults.tex gets overwritten in some parts, tut tut)) OR I test a new structure with leaner defaults and simply (hah) write the documentation for the newer version. Todo would be to 1. throw out all language related stuff 2. separate anon from non-anon completely 3. make coverpage more adjustable (float shit, don't define absolute values and go crazy like I did 4. (my dream) reduce the total amount of files one needs to edit in order to generate a custom exam. By logic, I'd think that you have to have a defaults which is module-wide, a specific which is exam-wide, and coverpage scripts and so on include those custom blocks. My current two cents on it anyway)}
+
+
+\todoP[inline]{complexity in Venlo has been caused by requirements: 1. reuse of questions 2. (no) copy and paste 3. keeping copies of builds 4. separate authoring of questions 5. versioning on text-based files}
+This is the documentation for AMC (auto-multiple-choice) exam generation for SEBI at Fontys Venlo. There are lots of steps involved, both in the initial set-up as well as the actual designing and grading of the exams. Coupled with an aging society, this causes people to re-learn every year or every exam cycle. This documentation serves multiple purposes. \\It is aimed at people that:
+\begin{enumerate}
+	\item ... are new to AMC
+	\item ... that have used AMC but forgot
+	\item ... that use AMC but need to look up a specific element
+\end{enumerate}
+
+As of 2019-01-14, the documentation is written (and tested) using Linux (Ubuntu 18.04). The plan is to extend this to have it working on Mac; if you're on Windows, best of luck. It is also assumed that you use a mainstream Linux distribution (Ubuntu,K/Lubuntu, LinuxMint...) if you are not experienced and that you can simply copy commands such as apt-get and nano without any trouble. If you use any other distro, I assume you can work your way around incompatible commands and you can yum your way out of it.\todoP{RPM-based e.g. Fedora SUSE}
+
+It is also assumed that you have access to fontysvenlo.org, access to  osirix and in general, a working tutor account. And admin rights on your machine.
+
+Working LaTeX compilers are pdflatex and xelatex. Lualatex has not worked so far.
+\subsection{Note to readers}
+I also aim to EXPLAIN how the exam is generated, not just give you a bunch of cryptic letters out of context. So unless you're here for the TL;DR version, go downstairs, grab a tea, get yourself comfortable and put your reading glasses on.
+\subsection{TODOS}
+\begin{enumerate}
+\item cross-reference this guide with the (Dutch) documentation on connect.fontys
+\item Testing the documentation on MacOS.
+MacOS has a different AMC installation: install macPorts, then use port command. NoteToSelf: dust off that MacBook and get a taste of my own medicine.
+ \item ...
+\end{enumerate}
+
+\section{TL;DR}
+This is section TL;DR (too long; didn't read) for those that have used AMC before and only need a quick run-down of commands of what to do. If you have NOT set up AMC or if you are completely new, please move on to the next section, Section~\ref{noobSetup}.
+
+
+\subsection{\label{proSetup}Quick setup}
+Make sure that you have the correct folder structure: 40\_exam and subfolders build and questions. The questions folder should contain .tex files with questions.
+
+In /builds, you should have defaults.tex and packages.tex. Also have a working ~/texmf folder.
+
+In builds, create folder with YYYYMMDD, such as 20201013. Inside, you should have a source.tex which is the specific source file for this exam. Edit this source file to your liking. 
+
+Then:
+	\begin{enumerate}
+	\item Open AMC 
+	\item Click "new project"
+	\item Type name of new project (DON'T SELECT EXISTING FOLDER)
+	\item Click "empty", then forward
+	\item Click "edit source file" to see if an empty tex file was generated
+	\item Symlink the source.tex file from the exam/builds folder in the module directory to the project folder of AMC. Example: 
+	
+	sl -s ~/sear/40\_exam/builds/20201013/source.tex source.tex
+	\item Click "update documents"
+	\item Click "Layout detection"
+	\item Enter the required number of exams and update documents again
+\end{enumerate}
+
+\subsection{\label{proPrinting}Quick printing}
+\begin{enumerate}
+	\item Open AMC project
+	\item do update documents and layout detection so both bars are green
+	\item click "print papers"
+	\item CTRL+A, separate answer sheet and destination dir /copies, click ok
+	\item command line cd into /copies, then lpa4single forms.pdf
+	\item for i in s*.pdf; do lpa4 \$i; done OR
+	\item drag and drop all files into https://fontys.mycampusprint.nl/Print/Default
+\end{enumerate}
+\subsection{\label{proGrading}Quick grading}
+
+\begin{enumerate}
+	\item Open AMC
+	\item Open Project
+	\item (Have a pdf ready with the scanned in answer sheets)
+	\item Data Capture tab -> click 'automatic'
+	\item click 'manual' and check if the answer sheets don't have gaps, if they do then select them by hand
+	\item Marking tab -> click 'set file' and select your studentList.csv, must be in the project repository. Get student list from peerweb or exam attendance sheet. MUST HAVE STUDENT NUMBER.
+	\item Marking tab, set 'primary key' to 'ID' and 'code name' to 'pre-association'
+	\item Click 'automatic', if it doesn't work, click 'manual' and assign students to the exam
+	\item Click Preferences -> Project -> Global marking rules: min=0, floor=1, max=10, grain=0.1, ceiling ticked
+	\item Click 'mark' in Marking tab
+	\item Reports tab, click 'export'. THIS FILE IS OVERRIDDEN EVERYTIME YOU PRESS 'EXPORT'
+\end{enumerate}
+
+\section{\label{noobSetup}Setup}
+Before you get all excited writing exam questions, thinking about the weighting and the grading procedure, you need to do a bunch of stuff on your machine that gets all the wheels turning. 
+
+The following subsection~\ref{noobSetupReqs} takes you through the prerequisites for everything. 
+\subsection{\label{noobSetupReqs}Prerequisites}
+\subsubsection{(La)TeX}
+AMC is based on LaTeX format, so you need to install a LaTeX distribution first. To do that, type 
+
+\verb|sudo apt-get install texlive-full|
+
+This will install the WHOLE texlive environment, around 2-4GB in size. Now, you could try and install \verb|texlive-base| first and then keep install additions as you get errors, but especially since we work with different languages at Fontys, just save yourself the headache and go all out.
+
+\paragraph{Optional: a TeX Editor}
+You can of course edit all your .tex files with any editor capable of opening them, but the advantage of a TeX Editor is of course Syntax highlighting and a visible document structure. There are many editors available, but one that is widely used is TeXstudio. Install it via
+\verb|sudo apt-get install texstudio|
+
+This is optional and if you have a different one, prefer a different one or use something else, fine.
+
+\subsubsection{AMC}
+You have TeX on your system, now you need the actual AMC software that was so kindly provided by Alexis Bienvenue. There is documentation on the website (https://www.auto-multiple-choice.net/doc.en) but if it was any good, this document wouldn't have a use case. Either way, you might want to have a look at it.
+
+AMC can be installed by first adding the repository and then installing it:
+\verb|sudo apt-add-repository ppa:alexis.bienvenue/amc|\\
+\verb|sudo apt-get update|\\
+\verb|sudo apt-get install auto-multiple-choice|
+\subsubsection{Scripts and Macros}
+So you have LaTeX, and you have AMC, sounds like two and two equals four and you are ready to go. Ah, but patience! AMC might provide the backbone of the exam generation, but people (read:Pieter) in W1.81 never do things the easy way and have added and modified a bunch a stuff to make life easier. Unfortunately for you, this makes your life, at least at the beginning, a bit harder. To generate the exam, two magic repositories are required. Basically what happens is: you call a script from a magic folder, and that script requires a bunch of latex macros from the other folder, and then you have your exam. So you need both magic folders. 
+
+\textsc{Note: please keep to the folder structure as detailed to prevent any annoyances with scripts later on. Stray from the path at your own peril.}
+
+\paragraph{Teambin (magic scripts)}\mbox{}\\
+In your home directory, open the console and type:\\
+\verb|svn co https://fontysvenlo.org/svnp/879417/sebiteambin/trunk/teambin teambin|\\
+This will check out the teambin repository from Pieter's personal repo on fontysvenlo.org. You need peerweb login data to access this one.
+\todoP{Make sure teambin is in your path}
+
+\paragraph{Fontexam (magic latex macros)}\mbox{}\\
+\textsc{Note: If you already have the folder structure below, only check out the repository where it is required.}
+
+Now that you have magic scripts folder, you need the magic latex macro folder, too. In your home directory, type:\\
+\verb|mkdir -p texmf/tex/latex|\\
+This will create a texmf folder, with a tex folder in it, which in turn has a latex folder in it. Navigate to that latex folder (\verb|cd texmf/tex/latex|) and type:\\
+\verb|svn co https://www.fontysvenlo.org/svnp/879417/fontexam/trunk fontexam |\\
+This will check out the fontexam folder, which contains the latex magic.
+\todoP{OSX: ~/Library/texmf}
+\subsubsection{Module svn repository}
+You also have to have the module repository checked out somewhere on your system. This is sort of obvious, but if you for some reason manage your modules differently, now is the time to change habit and checkout the module repo and keep to the structure that is generally adapted throughout all modules.
+
+If you are following this guide just to learn, you can use the SEAR (Security and Applied Research) module repository to play around.
+To check this one out, type:\\
+\verb|svn co svn+ssh://osirix/home/modules/sear/svnroot/trunk SEAR/trunk|\\
+
+Congratulations, you have met all prerequisites and may move on to the next section! If something did not work, please go back and consult a nerd of your choice. Aside from the optional tex editor, everything else is essential.
+
+\section{\label{noobPrepareExan}Preparing to build an exam}
+\subsection{Folder structure}
+Working on the assumption that you are inside a module repository on your machine, I will use a trimmed-down imaginary version of SEAR so that it is easier to follow.
+Let's have a look at the structure:\todoP{TEXMF TREES}
+\todoP{Default search path: .:${TEXMFHOME}:${TEXMFDIST} (simplified)}
+\begin{forest}
+		for tree={
+			font=\ttfamily,
+			grow'=0,
+			child anchor=west,
+			parent anchor=south,
+			anchor=west,
+			calign=first,
+			edge path={
+				\noexpand\path [draw, \forestoption{edge}]
+				(!u.south west) +(7.5pt,0) |- node[fill,inner sep=1.25pt] {} (.child anchor)\forestoption{edge label};
+			},
+			before typesetting nodes={
+				if n=1
+				{insert before={[,phantom]}}
+				{}
+			},
+			fit=band,
+			before computing xy={l=15pt},
+		}
+		[trunk
+		[10\_organisational
+		[2018-19]
+		]
+		[20\_theory
+		]
+		[30\_practical
+		]
+		[40\_exam
+		[builds]
+		[questions]
+		]
+		[50\_material
+		]
+		]
+	\end{forest}
+\todoP{all processing takes place inside the instance dir, 20190123, which then is . (dot) = working dir. ISO8601 shortformdate}
+The folder of interest for us is \texttt{40\_exam}. If your repository has an exam folder but not the sub-directories \texttt{builds} and \texttt{questions}, create them. They are required to proceed.\todo{use toyexam as template!}
+
+Let's head into the exams folder and have a closer look. In general, the directory structure is as follows:
+
+\begin{forest}
+	for tree={
+		font=\ttfamily,
+		grow'=1,
+		child anchor=west,
+		parent anchor=south,
+		anchor=west,
+		calign=first,
+		edge path={
+			\noexpand\path [draw, \forestoption{edge}]
+			(!u.south west) +(7.5pt,0) |- node[fill,inner sep=1.25pt] {} (.child anchor)\forestoption{edge label};
+		},
+		before typesetting nodes={
+			if n=1
+			{insert before={[,phantom]}}
+			{}
+		},
+		fit=band,
+		before computing xy={l=15pt},
+	}
+	[40\_exam
+	[builds
+	[20190123]
+	]
+	[questions
+	[applied-research]
+	[security]
+	]
+	]
+\end{forest}
+
+You have two sub-directories, \texttt{builds} and \texttt{questions}. In \texttt{builds}, all the actual generated exams will end up. For every exam, we create a new directory that should follow the naming convention \texttt{YYYYMMDD} for the date of the exam. After a few years, you have a nice history of exams. So inside \texttt{20190123} resides our exam that took place on the 23rd of January 2019.
+
+\subsubsection{Questions}
+The \texttt{questions} folder contains all exam questions that an exam can contain. The builds is separate from the questions. This is very useful because it allows you to generate a huge set of questions, and every year, a new exam can use new questions or re-use old ones. This way, you don't build one exam, you build a repository of questions and every exam cycle, you can make use of that question pool. 
+
+The way you organize your exam questions is up to you. Technically, it's fine to simply have question1.tex and question2.tex (and so on) in your questions folder but you will lose oversight quickly. So let's do it properly instead: In the case of SEAR, the module is made up of two separate elements: applied research and security. This invites us to create two sub-directories of questions, one for the applied-research part, and one for the security part.
+
+Let's navigate to the applied-research folder and have a look:
+\subsubsection{Builds}
+\subsection{Setting up the general exam info}
+%edit defaults.tex, macros and packages
+\section{\label{noobGrading}Grading an exam}
+\section{Working with your own scripts}
+\end{document}

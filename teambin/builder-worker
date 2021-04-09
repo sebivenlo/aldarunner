@@ -1,0 +1,61 @@
+#!/bin/bash
+# export WORKER_HOME="/home/builder"
+##
+if [ ! -d /var/run/alda-worker ]; then
+    echo "worker lock dir does not exists, exiting"
+    exit 1
+fi
+pid=$$
+pid_file=/var/run/alda-worker/worker-pid
+queue_dir=/home/aldarunner/queue/
+if [ -e $pid_file ]; then
+    ## assume there is a worker process busy
+    exit 0
+fi
+
+echo $pid > $pid_file
+if [ ! -s $pid_file ]; then
+    echo "coud not write lock file ${pd_file}, exiting"
+    exit 1
+fi
+
+export PATH=/home/builder/teambin:/home/builder/bin:$PATH
+eval $(_setJava java11)
+
+for work in $(ls ${queue_dir} | cat ); do
+#if    [ -n "$work" ]; then
+    ## filename w is created from subversion repo path with / replaces by .
+    ## parse subversion path/work string to sandbox path
+    ## example home.svn.2019.alda.g98@72
+    IFS='@' read -r -a parts <<< "${work}"
+    IFS='.' read -r -a path <<< "${parts[0]}"
+    rev="${parts[1]}"
+    year="${path[2]}"
+    mod="${path[3]}"
+    grp="${path[4]}"
+    echo "year ${year} mod ${mod} rev ${rev} grp ${grp}"
+
+    ## run build scripts in year/module specific dir
+    ## sandbox under WORKER_HOME sebi module student work grp
+    
+    sandbox=${HOME}/sebi/${mod}/sw/${year}
+    cat  ${queue_dir}/${work} > ${sandbox}/${grp}/incoming.${rev}
+    echo "started with ${work}" > /home/aldarunner/completed/${work}.log
+    echo "===== work ${work} found  ====" >> /home/aldarunner/completed/${work}.log
+    cat ${queue_dir}/${work} >> /home/aldarunner/completed/${work}.log
+    ws=$(date -Iseconds)
+    echo "===== work ${work} started  ${ws} ====" >> /home/aldarunner/completed/${work}.log
+    echo " Using sandbox ${sandbox}" >> /home/aldarunner/completed/${work}.log
+    cd ${sandbox}
+#    updateall.sh ${grp} >> /home/aldarunner/completed/${work}.log
+    ## run the local worker task
+    ./sandboxworker ${grp} >> /home/aldarunner/completed/${work}.log 2>&1 
+    ws=$(date -Iseconds)
+    echo "===== work ${work} completed  ${ws} ====" >> /home/aldarunner/completed/${work}.log
+    ## move project out of sight
+    rm ${queue_dir}/${work}
+# or alt    mv ${queue_dir}/${work} /home/aldarunner/completed
+#fi
+done
+
+rm $pid_file

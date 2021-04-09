@@ -1,0 +1,12 @@
+#!/bin/bash
+scriptdir=$(dirname $(readlink -f $0))
+infofile=${scriptdir}/impressive.info
+if [ $# -lt 1 ]; then
+    pdf=$(basename $(pwd))_sheets_en.pdf
+    if [ -e ${pdf} ]; then
+	show=$pdf
+    fi
+    /usr/local/bin/impressive --noblur --controls ${infofile} ${show}
+else 
+    /usr/local/bin/impressive --noblur --controls ${infofile} "$@"
+fi

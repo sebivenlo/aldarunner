@@ -1,0 +1,168 @@
+#!/bin/bash
+## helper to correct a bunch of maven projects with AB tests
+## expects to be run in a directory containing examproject and examsolution
+## 
+
+if [ ! -d solutions ]; then
+    echo "cannot find an solutions dir"
+fi
+
+
+if [ -z "${ARENA}" ]; then
+    ARENA=/media/ramdisk/
+fi
+export ARENA
+echo "all battles in ${ARENA}"
+
+##
+## @param SANDBOXES
+## @param APP e.g templateengine
+## @param EXAM eg EXAM124
+## @param ROUND e.g B0
+function prep(){
+    local SANDBOXES=$1
+    local APP=$2
+    local EXAM=$3
+    local ROUND=$4
+    local examdir=${SANDBOXES}/${EXAM}/${APP}
+    local arena=${ARENA}/${EXAM}-${APP}-${ROUND}
+    if [ ! -d ${examdir} ]; then
+	echo -e "\033[41m ${examdir} does not exist \033[m"
+	exit 1
+    fi
+    echo -e "\033[7mcreate arena ${arena} for ${EXAM} round ${ROUND}\033[m"
+    rm -fr ${arena}
+    mkdir -p ${arena}/src/{main,test}/java
+    if [ -d solutions/${APP}/src/main/resources ]; then
+    	rsync -a solutions/${APP}/src/main/resources/ ${arena}/src/main/resources/
+    fi
+    cp solutions/${APP}/pom.xml ${arena}
+    # default to AA round
+    local  asrc=solutions/${APP}/src/main/java
+    local atest=solutions/${APP}/src/test/java
+    local  bsrc=${examdir}/src/main/java
+    local btest=${examdir}/src/test/java
+    ## First char describes tes, second source
+    case ${ROUND} in
+	AA)
+	    TEST=${atest}
+	     SRC=${asrc}
+	    ;;
+	AB)
+	    TEST=${atest}
+	     SRC=${bsrc}
+	    ;;
+	BA)
+	    TEST=${btest}
+	     SRC=${asrc}
+	    ;;
+	B0)
+	    TEST=${btest}
+	    SRC=projects/${APP}/src/main/java
+	;;
+	B[1-9])
+	    TEST=${btest}
+	    local R=${ROUND:1}
+	    SRC=solutions/${APP}/src/main/java${R}
+	;;
+    esac
+    echo "  prep ${ROUND} for exam dir ${EXAM}"
+    echo -e "  src=${SRC}\n  test=${TEST} for ${EXAM}"
+    test -d ${SRC} \
+    && test -d ${TEST} \
+    && rsync -a  ${SRC}/ ${arena}/src/main/java/ \
+    && rsync -a ${TEST}/ ${arena}/src/test/java/
+
+}
+
+##
+## Run the tests in a prepared arena
+## @param SANDBOXES where code and tests are
+## @param arena where code and tests are
+## @param APP the  application name
+## @param EXAM the exam number, eg. EXAM124
+## @param the round, one of AA AB BA BB B0 B[1..9]
+
+function runTests(){
+    local SANDBOXES=$1
+    local arena=$2
+    local APP=$3
+    local EXAM=$4
+    local ROUND=$5
+    local startdir=$(pwd)
+    local ring=${arena}/${EXAM}-${APP}-${ROUND}
+    local reportdir=${SANDBOXES}/${EXAM}/${APP}/${ROUND}-surefire-reports
+    echo "  find the reports in ${reportdir}"
+    mkdir -p ${reportdir}
+    cd ${ring}
+    mkdir -p target/surefire-reports
+#    mvn -fn -q compile test-compile > compiler-out.txt
+    mvn -fn -q surefire:test | tee mvn-run-out.txt
+    #cp reports
+    rsync -a target/surefire-reports/ ${startdir}/${reportdir}/
+    cp  mvn-run-out.txt ${startdir}/${reportdir}/
+    cd ${startdir}
+    cp  ${SANDBOXES}/${EXAM}/${APP}-${ROUND}/compiler-out.txt ${startdir}/${reportdir}/
+#    rm -fr ${ring}
+}
+
+
+##
+## prepare areana and run test
+## @param SANDBOXES
+## @param APP the  application name
+## @param EXAM the exam number, eg. EXAM124
+## @param the round, one of AA AB BA BB B0 B[1..9]
+function prep_and_run(){
+    local SANDBOXES=$1
+    local APP=$2
+    local exam=$3
+    local round=$4
+    prep ${SANDBOXES} ${APP} ${exam} ${round}
+    runTests ${SANDBOXES} ${ARENA} ${APP} ${exam} ${round}
+}
+
+##
+## run all tests B[1..9]
+## @param SANDBOXES
+## @param APP the  application name
+## @param EXAM the exam number, eg. EXAM124
+function all_bx_rounds(){
+    local SANDBOXES=$1
+    local APP=$2
+    local exam=$3
+    for t in {1..9}; do
+	broken_business=examsolution/${APP}/src/main/java${t}
+	if [ -d ${broken_business} ]; then
+	    prep_and_run ${SANDBOXES} ${APP} ${exam} B${t}
+	fi
+    done
+}
+
+
+## run all tests AB BB BA B0 tests
+## @param SANDBOXES
+## @param APP the  application name
+## @param EXAM the exam number, eg. EXAM124
+function all_AB_rounds(){
+    local SANDBOXES=$1
+    local APP=$2
+    local exam=$3
+    for r in AB BA BB B0; do
+	prep_and_run ${SANDBOXES} ${APP} ${exam} ${r}
+    done
+}
+
+## run all tests rounds
+## @param SANDBOXES
+## @param APP the  application name
+## @param EXAM the exam number, eg. EXAM124
+function all_rounds(){
+    local SANDBOXES=$1
+    local APP=$2
+    local exam=$3
+    all_AB_rounds ${SANDBOXES} ${APP} ${exam}
+    all_bx_rounds ${SANDBOXES} ${APP} ${exam}
+}
+
+

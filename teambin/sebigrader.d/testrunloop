@@ -1,0 +1,17 @@
+#!/bin/bash
+
+## wrapper arround loop
+## to runs sub-process using tightvnc
+scriptdir=$(dirname $0)
+source ${scriptdir}/testrun-lib
+#debug=echo
+testlist=./sebigrader.out/examtestlist.txt
+if [ ! -e ${testlist} ] ; then
+    echo "no test list" 
+    exit 1
+fi
+
+for exam in $(cat ${testlist}) ; do
+    echo "testing $exam" 
+    testExam ${exam}
+done

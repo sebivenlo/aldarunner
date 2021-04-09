@@ -1,0 +1,5 @@
+#!/bin/bash
+fun=$1
+shift
+db=$1
+echo "SELECT pg_get_functiondef('${fun}'::regproc);" | psql -qtAX $db

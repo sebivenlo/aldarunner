@@ -1,0 +1,101 @@
+#!/bin/bash
+#TESTRUN_DEBUG=x
+scriptdir=$(dirname $0)
+firstexam=$(basename $(ls -d sw/EXAM* | head -1))
+if [ $# -eq 0 ]; then
+    cat <<EOF 
+    SYNOPSIS
+    testrun [ all | [<examdir> [...]] ] like
+    testrun ${firstexam}
+    testrun EXAM{200..213}
+    testrun EXAM123 EXAM126
+    testrun all
+
+    DESCRIPTION
+    testrun runs the tests that are defined under examsolution on the 
+    candidates work and generates test reports under the condition that the
+    candidate's project combined with the tests compile.
+
+    testrun is opinionated: It only wants to
+    *  work in a directory with a specific content:
+    **  it requires a file named setup.properties
+    **  and subdirectories 'examsolution', 'examproject', and 'sw' (for student work)
+    
+    it will check the presence of those files and will refuse to continue
+    when any of those is missing.
+EOF
+    exit 0
+fi
+
+
+##
+## check sanity of setup.properties
+## it should define the properties 'projects', ...
+source ./setup.properties
+if [ -z "$projects" ]; then
+    echo "setup.properties should define the property 'projects'"
+    exit 1
+fi
+echo -e "\e[34mprojects=${projects}\e[m"
+
+## check that the named projects are indeed present under examsolution
+##
+for project in $(echo ${projects}); do
+    if [ ! -d examsolution/${project} ]; then
+	echo -e "project \e[33m'${project}'\e[m not found as subdirectory of examproject"
+	exit 1
+    fi
+done
+
+## Check that all named projects build of have been build sanely
+## test if the maven target folder exists. If it does, do nothing and
+## assume all is well, if not do a maven test run in examsolution/${project}
+
+for project in $(echo ${projects}); do
+    if [ -d examsolution/${project}/target ]; then
+	echo -e "project \e[32m'${project}'\e[m assumed to be tested successfully, doing nothing" > /dev/null
+    else
+	wd=examsolution/${project}
+	echo -e "running maven tests on project \e[34m'${project}'\e[m"
+	(
+	    cd ${wd}
+	    mvn -q -fn test
+	)
+    fi
+done
+
+
+
+
+## for each project in testrun.conf:projects
+## for each exam in sw
+
+startdir=$(pwd)
+## create a workspace.
+## to speed up things, create a ramdisk and have ARENA point to it.
+## using a ramdisk will speed up and maybe as important reduce wear on your real storage such as rotating disk
+## or SSD solid state disks.
+## To be able to work anyway, create an arena
+pid=$(echo $$)
+
+mkdir -p sebigrader.out
+
+## clean list
+echo -n > sebigrader.out/examtestlist.txt
+
+if [  "$1" = "all" ] ; then
+    for examdir in sw/EXAM*; do
+	exam=$(basename ${examdir})
+	echo ${exam} >> sebigrader.out/examtestlist.txt
+    done
+else
+    for i  in  "$@"; do
+	exam=$1; shift
+	echo ${exam} >> sebigrader.out/examtestlist.txt
+    done
+fi
+
+scriptdir=$(readlink -f ${scriptdir})
+execute-on-vnc.sh ${scriptdir}/testrunloop
+
+menu

@@ -1,0 +1,5 @@
+#!/bin/bash
+source assessment_export_helper
+
+clean_slate
+rm -f *.zip *~

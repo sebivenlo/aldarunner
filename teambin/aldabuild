@@ -1,0 +1,27 @@
+#!/bin/bash
+
+## Assumptions: svnroot/clab/${app}.properties definieert de belangrijkste prioperties zoals
+## testpackage en testclass (studentSuite resp studentSuite.StudentTestSuite)
+## zie inhoud voor appoi
+scriptdir=$(dirname $0)
+antfile=${scriptdir}/config/aldabuild.xml
+
+if [[ $# < 2 ]]; then
+    echo usage: "aldabuild.sh <app> <grp>"
+    exit 1
+fi
+app=$1
+grp=$2
+
+## sourcing the app properties should define target_name
+source svnroot/clab/${app}.properties
+
+echo testing $app for group $grp with testpackage $testpackage and testclass $testclass
+
+ant -f ${antfile} \
+    -propertyfile svnroot/clab/${app}.properties \
+    -Dtarget=g${grp}/trunk/${target_name}/  \
+    -Dbase=svnroot/clab/${target_name}/ \
+    clean test
+
+

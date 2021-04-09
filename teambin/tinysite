@@ -1,0 +1,17 @@
+#!/bin/bash
+## adds resources without building a complete site
+
+dir=.
+scriptdir=$(dirname $0)
+if [ $# -gt 0 ]; then
+    dir=$1; shift
+fi
+
+# find the site dir
+sitedir=$(find ${dir} -name "site*" -type d| head -1)
+
+(
+    cd ${sitedir}
+    unzip -o -qq ${scriptdir}/mvn-site-resources.zip
+)
+

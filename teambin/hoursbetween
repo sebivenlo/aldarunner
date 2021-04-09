@@ -1,0 +1,11 @@
+#!/bin/bash
+if [ $# -lt 2 ]; then
+    echo "usage hourbetween <start> <end>"
+    exit 1
+fi
+pub=$1; shift
+due=$1; shift
+pub=$(date +%s --date="$pub")
+due=$(date +%s --date="$due")
+hours=$(((${due}-${pub})/(3600)))
+echo $hours

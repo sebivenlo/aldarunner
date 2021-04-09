@@ -1,0 +1,78 @@
+#!/bin/bash
+
+##
+## test one exam
+## @param exam exam dir under ./sw/
+function testExam(){
+    local exam=$1; shift
+    if [ ! -d sw/${exam} ]; then
+	echo -e "exam work \e[33m${exam}\e[m does not exists"
+	return
+    fi
+    #    for exam in sw/EXAM{100..103}; do
+    pid=$$
+    if [ -d /media/ramdisk ] ; then
+	export ARENA=/media/ramdisk/${USER}-${pid}-${exam}
+    elif [ -z "$ARENA" ]; then
+	export ARENA=/tmp/arena/${USER}-${pid}-${exam}
+    fi
+    echo -e "running tests on exam work \e[32m${exam}\e[m"
+    source ./setup.properties
+    startdir=$(pwd)
+    for project in $(echo ${projects}); do
+	## copy project files to ARENA
+	mkdir -p ${ARENA}/${project}/src/main/
+	## erase anything from target, it would confuse the grade collector
+	## scripts
+	rm -fr sw/${exam}/target
+	rsync -aq sw/${exam}/${project}/src/main/ ${ARENA}/${project}/src/main/
+	cat ${startdir}/examsolution/${project}/pom.xml | sed -e "s#solution#${exam}#" > ${ARENA}/${project}/pom.xml
+	rsync -aq ${startdir}/examsolution/${project}/src/test/ ${ARENA}/${project}/src/test/
+	(
+	    cd ${ARENA}/${project}
+	    ## cleanup 
+	    rm -rf mvn-run-out.txt compiler-error.txt target
+	    ## patch 
+	    patch_file=${startdir}/sw/${exam}/${project}/exam_repairs.sh
+	    if [ -s ${patch_file} ]; then
+		echo -e "\e[33mRepair ${exam} project ${project}\e[m"
+		cat ${patch_file}
+		bash ${patch_file}
+	    fi
+	    mkdir -p target/site
+	    ## patch pom file with exam name
+	    cat ${startdir}/examsolution/${project}/pom.xml | sed -e "s#solution#${exam}#" > pom.xml
+	    
+	    timeout 20s mvn -fae -q  surefire-report:report site -DgenerateReports=false \
+		-Dsurefire.report.title="Surefire Report ${exam} ${project}" \
+		| tee mvn-run-out.txt | grep "COMPILATION ERROR" > compiler-error.txt
+	    # mvn -fn -q clean test  | tee mvn-run-out.txt | grep "COMPILATION ERROR" > compiler-error.txt
+	    ## summarize tests
+	    rantests=0
+	    if compgen -G  "target/surefire-reports/*.txt" > /dev/null; then
+		rantests=1
+		cat target/surefire-reports/*.txt | aldatestsummary > target/site/testsummary.csv
+		mv target/{,site/}surefire-reports
+	    else
+		rantests=0
+		cat <<EOF >  target/site/testsummary.csv
+tests,passed,fails,errs,skips,time
+0,0,0,0,0,0
+EOF
+	    fi
+	    mv  mvn-run-out.txt compiler-error.txt target/site/
+	    if [ ${rantests} -eq 1 ]; then
+		echo -e "\e[44mcompleted ${exam}/${project}\e[m"
+		cat target/site/testsummary.csv
+	    else
+		echo -e "\e[41mcompleted ${exam}/${project} with compilation errors\e[m"
+	    fi
+	)
+	rm -fr sw/${exam}/${project}/site
+	mkdir -p sw/${exam}/${project}/site/
+	rsync -aq ${ARENA}/${project}/target/site/ sw/${exam}/${project}/site/
+    done
+    # if [ -z "${TESTRUN_DEBUG}" ]; then
+    # 	rm -fr ${ARENA}
+    # fi
+}

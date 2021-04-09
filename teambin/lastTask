@@ -1,0 +1,4 @@
+#!/bin/bash
+lt=$(ls -t /home/aldarunner/completed/ | head -1)
+cat /home/aldarunner/completed/${lt}
+echo completed at $(stat -c %y /home/aldarunner/completed/${lt})

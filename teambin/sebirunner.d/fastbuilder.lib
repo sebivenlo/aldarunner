@@ -1,0 +1,169 @@
+#!/bin/bash
+
+source ~/teambin/sebirunner.d/sebirunner.lib
+
+## @param ${grp} like g123
+## @param ${app} like wk01/hello
+function createArena(){
+    local workdir=$1; shift
+    local grp=$1; shift
+    local app=$1; shift
+    local arena="${workdir}/${grp}/${app}"
+    mkdir -p ${arena} ${workdir}/{css,images}
+    echo -n ${arena}
+}
+
+## collect commit info
+## @param projectSandbox where stuff has been checked out
+function collectCommitInfo(){
+    local projectSandbox=$1; shift
+#    svn info ${projectSandbox} 
+    /usr/bin/svn info ${projectSandbox} | \
+	sed -re 's/"hom"/"www-data"/;s/:\s(.+)/="\1"/;s/\s/_/;s/Changed /Changed_/;s/ Root /_Root_/' \
+	    > last-changed-revision.txt
+}
+
+## @param app
+## @param grp
+function collectOutputToSite(){
+    local app=$1; shift
+    local grp=$1; shift
+    cat mvn-run-out.txt | grep "COMPILATION ERROR" > compiler-error.txt
+    mkdir -p target/site # if not exists
+    if [ -s compiler-error.txt ]; then
+    	error_to_pre $(pwd)  ${app} ${grp} mvn-run-out.txt  ./target/site/compiler-error.html
+    else
+	run_to_pre $(pwd) ${app} ${grp} mvn-run-out.txt  ./target/site/mvn-run-out.html
+	if compgen -G "target/surefire-reports/*.txt" > /dev/null ; then
+	    cat target/surefire-reports/*.txt | sebitestsummary > target/site/testsummary.csv
+	else
+	    echo -e "tests,passed,fails,errs,skips,time\n0,0,0,0,0,0" > target/site/testsummary.csv
+	fi
+	## after use move to site
+	mv target/surefire-reports/ target/site/
+	coverage=$(find target -name jacoco.csv -exec jacocosummary {} \;)
+	echo -n "${coverage}" > target/site/jacocoCoverage.txt
+    fi
+}
+
+## @param arena
+## @param basedir
+## @param solutionDir
+## @param grp
+## @param app
+function buildAll(){
+    local arena=$1; shift
+    local sandBoxBaseDir=$1; shift
+    local solutionDir=$1; shift
+    local grp=$1; shift
+    local app=$1; shift
+    local studentCodeDir=${sandBoxBaseDir}/${grp}/${app}
+    local testSpec=$(grep "${app}" ${sandBoxBaseDir}/apps-list.csv)
+    local startDir=$(pwd)
+#    echo -e "\e[41m$testSpec\e[m"
+    IFS=',' read -ra TESTSPEC <<< "$testSpec"
+    local testCount="${TESTSPEC[1]}"
+    local minCoverage="${TESTSPEC[7]}"
+#     cat <<EOF
+# recieved
+# arena=${arena}
+# sandBoxBaseDir=${sandBoxBaseDir}
+# solutionDir=${solutionDir}
+# grp=${grp}
+# app=${app}
+# studentCodeDir=${studentCodeDir}
+# EOF
+    # enter  arena
+    cd ${arena}
+    ## get last change info
+    collectCommitInfo ${studentCodeDir}
+    
+    while true ; do
+	## start with BB test
+	## get teacher pom
+	pom=${solutionDir}/pom.xml
+	if [ -s ${solutionDir}/teacher-pom.xml ]; then
+	    pom=${solutionDir}/teacher-pom.xml
+	fi
+	cat  ${pom} | sed -e  "s/solution/${grp}/" > pom.xml
+	mkdir src/
+	rsync -aq ${studentCodeDir}/src/ src/
+	## first maven run
+	echo -e "\e[42mBB test\e[m"
+	mvnd -fn -B -q -Dsurefire.timeout=20 -P jacoco test \
+	     -Djacoco.report.title="BB Coverage report ${grp} ${app}" jacoco:report > mvn-run-out.txt
+	mvnd -fn -B -q -Dsurefire.report.title="BB Surefire Report ${grp} ${app}" surefire-report:report-only 
+	collectOutputToSite ${app} ${grp}
+	mv target/site siteBB
+	if [ -s siteBB/compiler-error.html ] ; then
+	    echo "stopping after compiler error."
+	    break
+	fi
+	if ! allTestsGreen siteBB/testsummary.csv ; then
+	    echo "not all tests are green"
+	    break
+	fi
+	cat siteBB/testsummary.csv
+	if [ -f siteBB/jacocoCoverage.txt ]; then
+	    actCoverage=$(cat siteBB/jacocoCoverage.txt)
+	else
+	    actCoverage=0
+	fi
+	# echo "min coverage = ${minCoverage}, actual coverage=${actCoverage}"
+	if [ $(($actCoverage+0)) -lt ${minCoverage} ]; then
+	    echo "insufficient Coverage for further tests, required ${minCoverage}% actual ${actCoverage}%"
+	    break
+	fi
+	rm -fr target
+	rm -fr src/test/
+	## AB
+	echo -e "\e[42mAB test\e[m"
+	rsync -aq ${solutionDir}/src/test/ src/test/
+	mvnd -fn -B -q -Dsurefire.timeout=20 -P jacoco test \
+	     -Djacoco.report.title="AB Coverage report ${grp} ${app}" jacoco:report > mvn-run-out.txt
+	mvnd -fn -B -q -Dsurefire.report.title="AB Surefire Report ${grp} ${app}" surefire-report:report-only 
+	collectOutputToSite ${app} ${grp}
+	mv target/site siteAB
+	if [ -s siteAB/compiler-error.html ] ; then
+	    echo "stopping after compiler error."
+	    break
+	fi
+	cat siteAB/testsummary.csv
+	if ! allTestsGreen siteAB/testsummary.csv ; then
+	    echo "not all tests are green"
+	    break
+	else
+	    ## report completed this version
+	    source ./last-changed-revision.txt
+	    echo -n "${Last_Changed_Date}" > completed
+	fi
+ 	rm -fr target
+	## Bx
+	for x in 1 2 3 4 5 6 7 8 9 ; do
+	    if [ -d ${solutionDir}/src/main/java${x} ]; then
+		mode=B${x}
+		echo -e "\e[42m${mode} test\e[m"
+		rm -fr src/main/java
+		rsync -aq ${solutionDir}/src/main/java1 src/main/java/
+		( mvnd -B -q -Dsurefire.timeout=20 test ) | grep -v '[INFO] '| grep -v '[WARNING]' > mvn-run-out.txt
+		mvnd -B -q -Dsurefire.report.title="${mode} Surefire Report ${grp} ${app}" surefire-report:report-only
+		collectOutputToSite ${app} ${grp}
+		mv target/site site${mode}
+	    fi
+	done
+	# make sure to leave the "loop"
+	break
+    done
+    mvnd --stop
+    for file in $(find . -name surefire-report.html); do
+	fixsurefireresources.sh ${file}
+    done
+#    rm -fr src target compiler-error.txt mvn-run-out.txt
+    zipname="${grp}/${app}"
+    zipname=${zipname//\//-}
+    rm -f ${zipname}.zip
+    zip -qr ${zipname}.zip ./
+    cd ${startDir}
+    echo "results in ${arena}"
+}
+

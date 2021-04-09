@@ -1,0 +1,15 @@
+#!/bin/bash
+viewer=/usr/bin/evince
+
+# get youngest pdf, as most likely target
+if [ $# -lt 1 ]; then 
+    arg=$(ls -t *.pdf | head -1)
+else
+    arg="$1"
+fi
+
+# run and detach
+${viewer} "${arg}" &
+
+
+

@@ -1,0 +1,38 @@
+#!/bin/bash
+
+#ec=$(ls -d sw/EXAM* | wc -l)
+shopt -s nullglob
+examdirs=(sw/EXAM*)
+ec=${#examdirs[@]}
+
+if [ "0" = "${ec}" ]; then
+    echo -e "\e[31mHaving 0 exams to correct makes me rather useless, so\e[32m exit \e[mand correct that first."
+else
+    firstexam=$(basename $(ls -d sw/EXAM* | head -1))
+    echo -e "\e[45mevent ${event}, found ${ec} exams in subdir 'sw'\e[m"
+    echo -e "first exam found is \e[44m${firstexam}\e[m"
+fi
+
+
+cat  <<EOF
+  [33m====================================================================================
+  On the Menu:
+  ------------
+  menu:       show this menu.
+  listexams:  list the available exam sandbox directories.
+  testrun:    run all tests on the exam projects in directory 'sw'
+              testrun ${firstexam} [...] : run all tests on ${firstexam} [...]
+              testrun can run the tests on exams in any order or any available start value
+
+  grade :     compute the scores from maven surefire test results
+              results in files template.csv and result.csv
+              grade ${firstexam} [...] : get test resuls for ${firstexam} [...]
+
+  cleardb:    drops existing database and creates new one.
+  
+  filldb:     loads database ${db} with sticks.csv, template.csv, student.csv, and result.csv 
+              from previous steps for processing.
+
+  exit:       exit from sebigrader
+  ====================================================================================[m
+EOF

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ -z "${db}" ]; then
+    echo "database name not defined, aborting"
+    exit 1
+fi
+
+if $(psql -lA| grep -q ${db} ); then
+    echo -e "using existing database \e[32m${db}\e[m"
+else
+    createdb.sh
+fi

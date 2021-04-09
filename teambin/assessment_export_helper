@@ -1,0 +1,270 @@
+#!/bin/bash
+# env should have $EXAMMODULE and $SVNBASE
+## arguments:
+# @task name of dir containing task and solution
+# @taskproject project dir under @task/solution/
+# adapted to bsd
+
+function die(){
+    msg=$1; shift
+    echo "${msg}"
+    exit 1
+}
+
+which ant > /dev/null || die "need an ant"
+
+## make sure there is ant on the PATH
+
+
+if [ -z "$examdir" ]; then
+    export examdir=45_assessment
+fi
+
+function doexports() {
+    local TASK=$1; shift 
+    local TASK_PROJECT=${TASK}
+    local EXPORT_TARGET=${TASK}
+    if [ $# -gt 1 ]; then
+        TASK_PROJECT=$1; shift
+    fi
+    if [ $# -gt 1 ]; then
+        EXPORT_TARGET=$1; shift
+    fi
+
+    local REPOS=${SVNBASE}/${MODULE}/svnroot/trunk/${examdir}/questions
+    local REPOPATH="${REPOS}/${TASK}/solution/${TASK_PROJECT}"
+    if  svn info "${REPOPATH}" ; then
+	svn export --force ${REPOS}/${TASK}/solution/${TASK_PROJECT} examsolution/${EXPORT_TARGET}
+	for i in $(find ./examsolution -name project.xml -type f); do
+	    sed -e  "s/${TASK_PROJECT}/${EXPORT_TARGET}/" $i > ${i}-new
+	    mv ${i}-new ${i}
+	done
+    else
+	echo "repo path ${REPOPATH} is not accessible"
+	exit 1
+    fi
+}
+
+function dolabexports() {
+    local TASK=$1
+    local TASK_PROJECT=$2
+    local EXPORT_TARGET=$3
+    local REPOS="${SVNBASE}/${MODULE}/svnroot/trunk/30_practical/questions"
+    local REPOPATH="${REPOS}/${TASK}/solution/${TASK_PROJECT}"
+    if svn info ${REPOPATH}; then
+	svn export --force ${REPOPATH} examsolution/${EXPORT_TARGET}
+	for i in $(find ./examsolution -name project.xml -type f); do
+	    sed -e  "s/${TASK_PROJECT}/${EXPORT_TARGET}/" $i > ${i}-new
+	    mv ${i}-new ${i}
+	done
+    else
+	echo "repo path ${REPOPATH} is not accessible"
+	exit 1
+    fi
+}
+
+function dolocalexports() {
+    local TASK=$1
+    local TASK_PROJECT=$2 
+    local EXPORT_TARGET=$2
+    if [ $# -gt 2 ] ; then EXPORT_TARGET=$3; fi
+    mkdir -p examsolution
+    rsync -av --exclude=target ./solution/${TASK_PROJECT}/ examsolution/${EXPORT_TARGET}/
+    for i in $(find ./examsolution -name pom.xml -type f); do
+	sed -e  "s/${TASK_PROJECT}/${EXPORT_TARGET}/" $i > ${i}-new
+	mv ${i}-new ${i}
+    done
+}
+
+function clean_slate(){
+    rm -fr examsolution examproject
+    rm -f *.zip
+}
+
+function nb_solution_to_examproject(){
+    for i in  $(find ./examproject -name project.xml); do
+	echo "mapping solution ${i} to exam project"
+	sed -e 's/:: solution/:: examproject/g' $i > ${i}-new
+	mv ${i}-new ${i}
+    done
+}
+
+function unignore(){
+    for i in  $(find ./examproject -name "*.java" | grep '/test/' ); do
+	echo "uncommenting all test-@Ignore on ${i}"
+	sed -e 's#//[[:space:]]*@Ignore#@Ignore#' $i > ${i}-new
+	mv ${i}-new ${i}
+    done
+    for i in  $(find ./examproject -name "*.java" | grep '/test/' ); do
+	echo "uncommenting all test-@Disabled on ${i}"
+	sed -e 's#//[[:space:]]*@Disabled#@Disabled#' $i > ${i}-new
+	mv ${i}-new ${i}
+    done
+}
+
+function ignoreOff(){
+    for i in  $(find ./examproject -name "*.java" | grep '/test/' ); do
+	echo "uncommenting all test-@Ignore on ${i}"
+	sed -e 's#@Ignore#//@Ignore#' $i > ${i}-new
+	mv ${i}-new ${i}
+    done
+    for i in  $(find ./examproject -name "*.java" | grep '/test/' ); do
+	echo "uncommenting all test-@Disabled on ${i}"
+	sed -e 's#@Disabled#//@Disabled#' $i > ${i}-new
+	mv ${i}-new ${i}
+    done
+}
+
+function pom_solution_to_examproject(){
+    for i in  $(find ./examsolution -name pom.xml); do
+	sed -e 's/solution-base/solution/g' ${i} > ${i}-new
+	mv ${i}-new ${i}
+    done
+    for i in  $(find ./examproject -name pom.xml); do
+	sed -e 's/solution-base/examproject/' ${i} > ${i}-new
+	mv ${i}-new ${i}
+    done
+}
+
+function stripsolution(){
+    ant -f ${HOME}/teambin/config/build.xml do${PROJECTTYPE}
+    ## there might be cleanup tasks in the examsolution
+    for c in $(find examsolution -name cleanup.sh); do
+	(
+	    cd $(dirname $c)
+	    bash $(basename $c)
+	)
+    done
+}
+
+function stripsolution2(){
+    local target=$1
+    ant -Dntargetdir=${target} -f ${HOME}/teambin/config/build-ntarget.xml  do${PROJECTTYPE}
+}
+
+function fix_task_prefix(){
+    
+    local PREFIX_OLD=TASK_1
+    local TASK_PROJECT=$1
+    local PREFIX_NEW=$2
+    for i in $(grep -rl ${PREFIX_OLD} examsolution/${TASK_PROJECT}/) ; do
+	sed -e s/${PREFIX_OLD}/${PREFIX_NEW}/g ${i} > ${i}-new
+	mv ${i}-new ${i}
+    done
+
+}
+
+function zipit(){
+    local TASK=$1
+    (cd examproject
+     for t in $(find ./ -mindepth 1 -maxdepth 1 -type d ); do
+	     echo "zip file ='../${t}-assignment.zip' e"
+	     zip -r ../${t}-assignment.zip ${t}
+     done
+    )
+    (cd examsolution
+     for t in $(find ./ -mindepth 1 -maxdepth 1 -type d ); do
+	     echo "zip file ='../${t}-solution.zip' s"
+	     zip -r ../${t}-solution.zip ${t}
+     done
+    )
+}
+
+## Remove alternate broken implementations form java project
+function dropbrokenimpl(){
+    find examproject -name java? -exec rm -fr {} \;
+}
+
+## do a clean test run on the solution
+function checkMavenSolutions(){
+    for d in $(find examsolution -mindepth 1 -maxdepth 1 -type d ); do
+	echo -e "\033[42mprepping test template from AA test for $d\033[m"
+        (
+	    cd $d; mvn -q clean test
+	)
+    done
+}
+
+## do a clean test-compile run on examproject
+function checkMavenProjects(){
+    for d in $(find examsolution -mindepth 1 -maxdepth 1 -type d ); do
+	echo -e "\033[46mrunning test-compile on exam project $d\033[m"
+	(
+	    cd $d
+	    mvn -q clean test-compile
+	)
+    done
+}
+
+
+## remove from examsolution what is not (or no longer) part of the examproject.
+## the examproject may have some file removed due to stripping, Remove those from
+## the solution too, since the solution is the correction tenplate (toets matrijs), determining the questions in the exam
+##
+
+function balance-exam-project(){
+    for j in $(find examsolution/ -name "*.java"); do
+	t=${j/examsolution/examproject}
+	if [ ! -e $t ]; then
+	    echo -e "file \033[43m${t}\033[m does not exist, propbally stripped. \n  Removing counterpart \033[41m${j}\033[m in solution."
+	    rm -f $j
+	fi
+    done
+}
+
+## ensure the project is compiler correct.
+function check_exam_projects(){
+    opwd=$(pwd)
+    for p in examproject/*; do
+	echo -e "\e[42mTesting examproject ${p} for maven problems, this takes some time\e[m"
+	cd $p
+	mvn -q compile test-compile || exit 1
+	rm -fr target
+	cd ${opwd}
+    done
+}
+
+## ensure perfect solution passes all mvn stages
+function check_exam_solutions(){
+    opwd=$(pwd)
+    for p in examsolution/*; do
+	echo -e "\e[46mTesting solution ${p} for maven problems, this takes some time\e[m"
+	cd $p
+	mvn -q -P jacoco test site || exit 1
+	rm -fr target
+	cd ${opwd}
+    done
+}
+
+function testSolution(){
+    for project in $(cat doexports | grep -v '#' | grep fix_task_prefix | awk '{print $2}'); do
+	(
+	    cd examsolution/${project};    mvn test 
+	)
+    done    
+}
+
+function testExamProject(){
+    for project in $(cat doexports | grep -v '#' | grep fix_task_prefix | awk '{print $2}'); do
+	(
+	    cd examproject/${project}
+	    mvn -q test-compile 
+	)
+    done    
+}
+
+function collectpoints(){
+    source setup.properties
+    local wk=$(basename $(pwd))
+    local app
+    local sumf
+    local data
+    for project in $(cat doexports | grep -v '#' | grep fix_task_prefix | awk '{print $2}'); do
+	app="${wk}/$project"
+	sumf=examsolution/${project}/target/surefire-reports/testsummary.csv 
+	cat examsolution/${project}/target/surefire-reports/*.txt | sebitestsummary >${sumf}
+	data=$(tail -1 ${sumf})
+	# app, test data (first is number of tests), coverage required, pub and due dates.
+	echo "${app},${data},95,${pub},${due}" 
+    done | tee ${wk}-apps-list.csv
+}

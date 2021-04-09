@@ -1,0 +1,28 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then 
+    arg=$(ls -t *.tex | head -1)
+else
+    arg=$1
+fi
+base=$(basename ${arg} .tex)
+curdir=$(pwd)
+mkdir -p out
+pdflatex -jobname=${base} -output-directory out  <<EOF > /dev/null
+\\def\\DocumentLanguage{EN}
+\\def\\Material{${base}}
+\\input{sheetbase}
+EOF
+if [ -f out/${base}.pdf ] ; then
+    mv out/${base}.pdf .
+    echo created new ${base}.pdf
+    exit 0
+else
+    echo errors, see log.
+    cat out/${base}.log
+    echo errors, see log.
+    exit 1
+fi
+#rm -fr out
+#done
+

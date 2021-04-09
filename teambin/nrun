@@ -1,0 +1,10 @@
+#!/bin/bash
+while [ $# -ge 1 ]; do
+    grp=$1; shift
+    rm ${grp}/svninfo.checked
+    cat <<EOF > ${grp}/incoming.1
+A    sortingimpl 
+A    appointmentplanner 
+EOF
+    aldarun ${grp}
+done

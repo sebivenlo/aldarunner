@@ -1,0 +1,43 @@
+#!/bin/bash
+## incoming parameter is repo path
+## filename w is created from subversion repo path with / replaces by .
+## parse subversion path/work string to sandbox path
+## example home.svn.2019.alda.g98@72
+logfile=$(dirname $0)/pending.log
+function svnStatusToPendingSet(){
+    local workfile=$1; shift
+    declare -A pendingset
+    ## read the work file and set to pending all revision mods
+    IFS='
+'
+    for l in $(cat ${workfile}); do
+	OIFS="${IFS}"
+	IFS=' ' read -r -a parts <<< "${l}"
+	IFS='/'  read -r -a dirs <<< "${parts[1]}"
+	IFS="${OIFS}"
+	exercise="${dirs[1]}/${dirs[2]}"
+	## use map as set
+	pendingset[$exercise]=t
+    done
+    echo "${!pendingset[@]}"
+}
+
+# for i in $(svnStatusToPendingSet $1); do
+#     echo "task = $i"
+# done
+# exit 1
+repospath=$1; shift
+OIFS="${IFS}"
+IFS='/' read -r -a path <<< "${repospath}"
+IFS="${OIFS}"
+year="${path[3]}"
+mod="${path[4]}"
+grp="${path[5]}"
+publish_basedir=/home/alda/public_html/reports/2020
+workfile=${repospath}/build-pending
+echo "repospath = ${repospath} grp=${grp}" >> ${logfile}
+for task in $(svnStatusToPendingSet $workfile) ; do
+    pending="${publish_basedir}/${grp}/${task}/build-pending"
+    echo "made pending ${pending}" >> ${logfile}
+    touch ${pending}
+done

@@ -1,0 +1,9 @@
+#!/bin/bash
+# name at osirix without spaces
+printer=$(basename $0)
+printer=${printer:2}
+dest=${USER}-$(date +%s%N)
+filename=$(basename -- "$@")
+extension="${filename##*.}"
+filename="${filename%.*}"
+scp "$@" osirix:/var/spool/${printer}/${dest}.${extension}

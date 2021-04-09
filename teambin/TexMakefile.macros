@@ -1,0 +1,10 @@
+.PHONY: all clean
+
+TEX=pdflatex -shell-escape -file-line-error -output-directory=out
+
+%.pdf: %.tex
+	mkdir -p out
+	$(TEX)	$<
+	$(TEX)	$<
+	cp out/*.pdf .
+

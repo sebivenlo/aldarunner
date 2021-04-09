@@ -1,0 +1,25 @@
+#!/bin/bash
+source config.properties
+source ~/teambin/sebirunner.d/fastbuilder.lib
+
+grp=$1; shift
+app=$1; shift
+pid=$$
+workdir=/media/ramdisk/fastbuilder-${pid}
+arena=$(createArena ${workdir} ${grp} ${app})
+
+echo "arena=${arena} grp=${grp} app=${app}"
+opwd=$(pwd)
+buildAll ${arena} ${opwd} ${opwd}/solutions/${app} ${grp} ${app}
+zipfile=$(echo ${arena}/*.zip)
+echo "zipfile=${zipfile}"
+if [ "threehunderd" = "$(hostname)" ] ; then
+    /home/prc2/public_html/reports/2021/report-unpacker ${zipfile}
+else
+    scp ${zipfile} ${publish_host}:${publish_basedir}/INBOX
+fi
+
+if [ -z "${SEBI_DEBUG}" ]; then
+    rm -fr ${workdir}
+fi
+

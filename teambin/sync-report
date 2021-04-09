@@ -1,0 +1,2 @@
+#!/bin/bash
+rsync -av reports/ fontysvenlo:/home/alda/public_html/reports/2019/

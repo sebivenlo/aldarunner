@@ -1,0 +1,121 @@
+#!/bin/bash
+function usage(){
+echo -e '
+    Usage: aldarun \e[32m<app>\e[m group [<group>...]
+    The app is 'run' (tested) for all groups on the remainder of the command line.
+
+    The script assumes the following directory structure and content 
+    for all groups, starting from the current directory
+
+    ./gXYZ/somedir/\e[32m<app>\e[m/pom.xml
+    
+    as well as a directory named 
+    ./examsolution/\e[32m<app>\e[m/pom.xml
+    '
+}
+
+export publish_host=fontysvenlo.org
+source aldarun-lib
+
+if [ $# -lt 1 ]; then
+    usage
+    exit 1
+fi
+
+umask 002;
+pid=$(echo $$)
+## create a workspace
+## to speed up things, create a ramdisk and have ARENA point to it
+## using a ramdisk will speed up and maybe as important reduce wear on your real storage such as rotating disk
+## or SSD solid state disks.
+## To be able to work anyway, create an arena
+if [ -d /media/ramdisk ] ; then
+    export ARENA=/media/ramdisk/${USER}-${pid}
+elif [ -z "$ARENA" ]; then
+    export ARENA=/tmp/arena/${USER}-${pid}
+fi
+## run all tets in arena
+
+
+if [ -s aldarun.conf ]; then
+    source aldarun.conf
+else
+    apps=$1; shift
+fi
+seen=""
+echo -e "applications = \e[44m$apps\e[m"
+
+while [ $# -ge 1 ]; do
+    grp=$1; shift
+    if [ ! -d ${grp} ]; then
+	echo "${grp} is not a sub directory, are you in the correct dir?"
+	exit 1
+    fi
+    # if diff -q -N ${grp}/svninfo.{current,checked}; then
+    # 	echo ${grp} last check is current
+    # 	continue
+    # fi
+    for app in $(echo ${apps}); do
+	cleanup ${app} BB
+	if $(grep -q ${app} ./${grp}/incoming.*) ; then
+	    echo -e "creating ARENA ${ARENA}"
+	    mkdir -p ${ARENA}
+	    cat ${grp}/incoming.*  ${grp}/incomings.backup | sort -u >> ${grp}/incomings.backup-tmp
+	    mv ${grp}/incomings.backup{-tmp,}
+	    echo -e "\e[35m found UPDATE/ADD for ${app}\e[m"
+	    source ${app}.conf
+	    apiversion=$(getApiVersion ${grp} ${app} ${mvnCoord})
+	    echo -e "running all tests student test on \e[32m${app}\e[m for \e[32m${grp} for api ${apiversion}\e[m"
+
+	    coverage=$(bbrun ${apiversion} ${app} ${grp})
+	    # echo "coverage == == ${coverage}"
+	    coverage=$((${coverage}))
+	    testsummary=${ARENA}/${app}BB/target/site/testsummary.csv
+	    if [ -s ${testsummary} ]; then 
+		echo -e "test summary"
+		cat ${ARENA}/${app}BB/target/site/testsummary.csv
+		echo -e "\e[42;37mstudent tests lines covered '${coverage}'%\e[m"
+	    else
+		echo -e "\e[41mNo test results found, so no test summary\e[m"
+	    fi
+	    if [ 'builder' == "${USER}" ]; then ## only when user is builder
+		rsync -rplogD --omit-dir-times --del ${ARENA}/${app}BB/target/site/ ${publish_host}:${publish_path}/${grp}/${app}/site/
+	    fi
+
+	    #	    if allTestsGreen reports/2019/${grp}/${app}/site/testsummary.csv ; then
+	    cleanup ${app} AB
+	    if [ "${coverage}" -gt "94" ]; then
+		echo -e "\e[32mRunning teachers test on ${grp} ${app}\e[m"
+		coverage=$(abrun ${apiversion} ${app} ${grp})
+		echo -e "teacher test summary"
+		cat ${ARENA}/${app}AB/target/site/testsummary.csv
+		echo -e "\e[42;37mteacher tests lines covered ${coverage}%\e[m"
+		if [ 'builder' == "${USER}" ]; then ## only when user is builder
+		    rsync -rplogD --omit-dir-times --del ${ARENA}/${app}AB/target/site/ ${publish_host}:${publish_path}/${grp}/${app}/siteA/
+		fi
+	    else
+		echo -e "Coverage ${coverage} too low, no teacher tests, removing old"
+		ssh fontysvenlo.org rm -fr ${publish_path}/${grp}/${app}/siteA/
+	    fi
+	    ## publish test reports, deleting old stuff
+	    ## Modded rsync, should now work, once we use builder on server AND locally
+	    
+	    # if [ 'builder' == "${USER}" ]; then ## only when user is builder
+	    # 	rsync -rplogD --omit-dir-times --del reports/2019/${grp}/${app}/ ${publish_host}:${publish_path}/${grp}/${app}/
+	    # fi
+	    ## cleanup incoming status
+	else
+	    echo -e "\e[35m nothing for ${app}\e[m"
+	fi
+	seen="${seen} ${grp}"
+	
+    done ## for all apps
+    rm -f ${grp}/incoming.*
+    cat ${grp}/svninfo.current > ${grp}/svninfo.checked
+done # for all grps
+echo "### seen groups ${seen} ###"
+## remove if not debugging
+if [ -z "${ALDARUN_DEBUG}" ]; then
+    rm -fr ${ARENA}
+fi
+exit 0

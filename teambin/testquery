@@ -1,0 +1,6 @@
+#!/bin/bash
+scriptdir=$(dirname $(readlink -f $0))
+export CLASSPATH=${scriptdir}/querytester.jar:${HOME}/Library/postgresql/postgresql-42.2.2.jar
+
+echo "$@"
+java -cp ${CLASSPATH}  pgjdbcdemo.QueryTester "$@"
