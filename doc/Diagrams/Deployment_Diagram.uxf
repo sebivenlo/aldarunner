@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.3.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLDeployment</id>
+    <coordinates>
+      <x>550</x>
+      <y>390</y>
+      <w>190</w>
+      <h>260</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;device&gt;&gt;
+Fontys Venlo Server</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLDeployment</id>
+    <coordinates>
+      <x>810</x>
+      <y>190</y>
+      <w>170</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;device&gt;&gt;
+Build Server(Builder)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLDeployment</id>
+    <coordinates>
+      <x>830</x>
+      <y>590</y>
+      <w>190</w>
+      <h>240</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;device&gt;&gt;
+Osirix Service Server
+(Private teacher access)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLDeployment</id>
+    <coordinates>
+      <x>230</x>
+      <y>410</y>
+      <w>180</w>
+      <h>250</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;device&gt;&gt;
+Student Computer</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>730</x>
+      <y>330</y>
+      <w>230</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;-
+Trigger</panel_attributes>
+    <additional_attributes>170.0;10.0;170.0;90.0;10.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>700</x>
+      <y>250</y>
+      <w>160</w>
+      <h>220</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;-
+Get</panel_attributes>
+    <additional_attributes>10.0;200.0;10.0;10.0;140.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>400</x>
+      <y>430</y>
+      <w>170</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;-
+svn checkin</panel_attributes>
+    <additional_attributes>150.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLDeployment</id>
+    <coordinates>
+      <x>560</x>
+      <y>450</y>
+      <w>160</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;execution environment&gt;&gt;
+Peerweb
+-runs student distribution
+script</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>970</x>
+      <y>270</y>
+      <w>120</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;-
+Job</panel_attributes>
+    <additional_attributes>100.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLGeneric</id>
+    <coordinates>
+      <x>840</x>
+      <y>240</y>
+      <w>100</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>symbol=artifact
+zipfile</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLGeneric</id>
+    <coordinates>
+      <x>860</x>
+      <y>700</y>
+      <w>110</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>symbol=artifact
+Exams</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLGeneric</id>
+    <coordinates>
+      <x>860</x>
+      <y>760</y>
+      <w>110</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>symbol=artifact
+Assignments</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>660</x>
+      <y>600</y>
+      <w>220</w>
+      <h>200</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;-
+Push</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;90.0;150.0;90.0;150.0;180.0;200.0;180.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLGeneric</id>
+    <coordinates>
+      <x>560</x>
+      <y>540</y>
+      <w>140</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>symbol=component
+student
+Repository</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLDeployment</id>
+    <coordinates>
+      <x>420</x>
+      <y>740</y>
+      <w>140</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;device&gt;&gt;
+Teacher Computer</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>550</x>
+      <y>770</y>
+      <w>300</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;-
+Checkout</panel_attributes>
+    <additional_attributes>10.0;10.0;100.0;10.0;100.0;50.0;280.0;50.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>420</x>
+      <y>580</y>
+      <w>160</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;-
+Push
+assignements</panel_attributes>
+    <additional_attributes>140.0;20.0;10.0;20.0;10.0;160.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLDeployment</id>
+    <coordinates>
+      <x>240</x>
+      <y>470</y>
+      <w>150</w>
+      <h>170</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;execution environment&gt;&gt;
+Operating system</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLGeneric</id>
+    <coordinates>
+      <x>250</x>
+      <y>530</y>
+      <w>110</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>symbol=artifact
+assignments</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>350</x>
+      <y>550</y>
+      <w>230</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;-
+svn update</panel_attributes>
+    <additional_attributes>10.0;20.0;210.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLGeneric</id>
+    <coordinates>
+      <x>1070</x>
+      <y>260</y>
+      <w>140</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>symbol=component
+Queue</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>930</x>
+      <y>240</y>
+      <w>390</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;-
+Create</panel_attributes>
+    <additional_attributes>10.0;10.0;330.0;10.0;330.0;50.0;280.0;50.0</additional_attributes>
+  </element>
+</diagram>
