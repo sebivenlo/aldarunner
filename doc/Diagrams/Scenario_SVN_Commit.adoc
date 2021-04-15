@@ -1,21 +1,34 @@
 = SVN_Commit
 :showtitle:
 
-*Name* {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}|  SVN_Commit +
-*Actor* {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {sp}| Student +
-*Description* {nbsp} {nbsp} {sp} | The svn commit process for the Student user. +
-*Pre-condition* | Student is logged in the versioning system +
+++++
+<div class='ex'><details open class='ex'>
+++++
 
-*Scenario* +
-{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}1. Actor commits selected files. +
-{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}2. System send a trigger to Fontys Venlo SVN server. +
-{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}3. System sets building flag in publishing environment and puts the files in a queue. +
-{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}4. System runs the comitted files through a build process. +
-{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}5. System publishes files. +
-{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp}6. Actor has commited his files. +
+|====
+| *Name* | SVN_Commit 
+| *Actor* | Student 
+| *Description* | The svn commit process for the Student user.
+| *Pre-condition* | Student is logged in the versioning system.
+|====
 
-*Result*
-{nbsp} {nbsp}  The actor has committed his files. +
+*Scenario* 
 
-*Exceptions* 1 The actor's credentials were invalid. +
-{nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} {nbsp} 1.1 Use case ends here.
+. Actor commits selected files. 
+. System send a trigger to Fontys Venlo SVN server. 
+. System sets building flag in publishing environment and puts the files in a queue. 
+. System runs the comitted files through a build process. 
+. System publishes files. 
+. Actor has commited his files. 
+
+|====
+| *Result* |
+The Actor has been comitted it's files. 
+| *Exceptions*  |
+1 Actors credentials were invalid +
+1.1 Use case ends here. 
+|====
+
+++++
+</div></details>
+++++

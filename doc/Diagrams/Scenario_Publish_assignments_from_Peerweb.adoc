@@ -1,6 +1,10 @@
 = Publish_assignments_from_Peerweb
 :showtitle:
 
+++++
+<div class='ex'><details open class='ex'>
+++++
+
 |====
 | *Name* | Publish_assignments_from_Peerweb 
 | *Actor* | System 
@@ -25,3 +29,6 @@ The System has been comitted it's files.
 3.1 Use case ends here. 
 |====
 
+++++
+</div></details>
+++++
