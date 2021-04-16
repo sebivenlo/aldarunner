@@ -74,7 +74,7 @@ Github actions are event driven, meaning that you can run a series of commands a
  
 Github actions use YAML syntax to define the events, jobs and steps(this is stored in your repository @ .github/workflows
 
-image::/img/GitHub_Actions.png[] 
+image::img/GitHub_Actions.png[] 
  
 In this case push is the event that triggered the action, and uses steps to control the order in which actions are run which automate your software testing.
 
