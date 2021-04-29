@@ -1,0 +1,41 @@
+#!/bin/bash
+# script to unpack zip file in some basedir, bu clearing out the target
+# first.
+# use case: deploy prc2/alda test result bundles.
+# the script evaluates $0 to determine the basedir of the deploy,
+# making it useful to sym link the file into the basedir
+# Assuming you want to deploy g169's results of wk01/firstcontact
+# in target dir /home/prc2/public_html/reports/2021/
+# then the result bundle should be named g169-wk01-firstcontact.zip
+# and this script should be sym-linked
+# into  /home/prc2/public_html/reports/2021/
+
+PATH=/home/rp/teambin:${PATH}
+if [ $# -lt 1 ]; then
+    echo -e "\e[41m need zip file name \e[m"
+fi
+basedir=$(dirname $0)
+zipfile=$1
+
+basename=$(basename $zipfile .zip)
+IFS='-' read -ra PARTS <<< "${basename}"
+grp=${PARTS[0]}
+reportdir="${basename//-/\/}"
+targetdir="${basedir}/${reportdir}"
+#echo "basedir=${basedir}, reportdir=${reportdir}, targetdir=${targetdir}"
+if [ -d "${targetdir}" ]; then
+    rm -fr "${targetdir}"/*
+fi
+mkdir -p ${targetdir}/
+unzip -oqq -d ${targetdir} ${zipfile}
+## remove zipfile
+rm -f ${zipfile}
+# update grp/alltestssummary.csv
+(
+    cd ${basedir}
+    for f in $(find ${grp} -type f -name testsummary.csv); do
+	if [[ "${f}" =~ siteAB/testsummary.csv$ ]]; then
+	    cat $f
+	fi
+    done  | /home/rp/teambin/testsummary-sum > ${grp}/alltestssummary.csv
+)

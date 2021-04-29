@@ -1,0 +1,9 @@
+clearall
+#escape = quit
+rmb = spotlight-enter, spotlight-exit
+lmb = hyperlink,overview-enter,overview-confirm
+left = goto-prev,overview-prev
+right = goto-next,overview-next
+down = overview-down
+up = overview-up
+

@@ -1,0 +1,34 @@
+#!/bin/bash
+
+for i in $(find examproject/ -name "*Test.java"); do
+    echo "found test ${i}"
+    grep -qe '^[[:space:]]\+@Test' $i
+    foundTest=$?
+    grep -qe '^[[:space:]]\+@ParameterizedTest' $i
+    foundPTest=$?
+    echo "par =$foundPTest"
+    if [ $foundTest -o $foundPTest  ] ; then
+	echo "Tests found  in ${i}, survives";
+    else
+	echo "No Tests found  in ${i}, dropping it";
+	rm -fr $i
+    fi;
+done
+
+## cannot write a java class in less then 9 char: 'class A{}'
+for i in $(find examproject/ -type f -name "*.java" -size -9c); do
+    echo "nothing left in file ${i}. Dropping it."
+    rm -fr $i;
+done
+
+
+for d in $(find examproject/ -type d | sort -r); do
+    # test for empty
+    if [ -z "$(ls -A ${d})" ]; then
+	basen=$(basename ${d})
+	if [  "${basen}" != "java" ]; then
+	    echo "directory ${d} empty, dropping it"
+	    rm -fr ${d}
+	fi
+    fi
+done

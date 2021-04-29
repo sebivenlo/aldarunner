@@ -1,0 +1,23 @@
+#!/bin/bash
+scriptdir=$(dirname $0)
+out=gradingtable.csv
+texfile=gradingtable.tex 
+if [ ! -e $out ]; then
+    cat <<EOF > ${out}
+task,project, 	test_class,test_method_name, points
+EOF
+    
+    count=1
+    for project in $(cat doexports | grep fix_task_prefix | awk '{print $2}'); do
+	
+	for i in $(find examsolution/${project}/target/surefire-reports -name "*.xml") ; do
+	    ${scriptdir}/_mkgradingtable.pl "${count}" $i
+	done  | sort -t , -k 1 | tee -a ${out}
+	count=$((${count}+1))
+    done
+else
+    echo -e "\e[45mgradingtable.csv already exists, assuming it precious so not overwritten.\e[m\n"
+fi
+cat ${out} | ${scriptdir}/_csv2longtable.pl > gradingtable.tex
+
+

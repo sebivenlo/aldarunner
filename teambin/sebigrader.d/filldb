@@ -1,0 +1,50 @@
+#!/bin/bash
+
+source ../default.properties
+examdate=$(basename $(pwd))
+resultfile=${module_name}${examdate}.csv
+db=${module_name}_${examdate}
+event=${module_name}${examdate}
+echo "here a"
+
+echo "using database ${db}"
+
+sebi_load_scores.pl | psql  -X ${db}
+#rm -fr sebigrader.out
+mkdir -p sebigrader.out
+
+echo "here a"
+
+echo "loaded results" 
+cat <<EOF   > sebigrader.out/resultquery.sql
+drop view if exists final_named_result;
+drop table if exists final_result;
+create table final_result as select * from 
+EOF
+
+echo -n "select * from assessment_score_query4('${event}'::text) ;" | psql -q -A -t -X ${db} >> sebigrader.out/resultquery.sql
+
+echo "here b"
+
+## keep the semicolon in.
+cat <<EOF >> sebigrader.out/resultquery.sql
+;
+create view final_named_result as
+  select s.snummer as id,s.achternaam,s.roepnaam,s.sclass as klas, s.email1 as email,f.* from students s right join  final_result f using(snummer);
+EOF
+
+echo "here c"
+
+
+## create the view and dump it as csv file
+cat  sebigrader.out/resultquery.sql | psql -X -q ${db}
+echo "select * from final_named_result order by stick_nr" | psql -X -F';' -A -q ${db} > ${resultfile}
+
+echo "here d"
+
+lines=$(cat ${resultfile}| wc -l)
+## drop header and footer line.
+lines=$((${lines}-2))
+echo "assessment results in ${resultfile} having ${lines} result lines."
+#rm sebigrader.out/resultquery.sql
+exit 0

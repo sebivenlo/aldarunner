@@ -1,0 +1,126 @@
+#!/bin/bash
+function usage(){
+echo -e '
+    Usage: sebirunner \e[32m<app>\e[m group [<group>...]
+    The app is 'run' (tested) for all groups on the remainder of the command line.
+
+    The script assumes the following directory structure and content 
+    for all groups, starting from the current directory
+
+    ./gXYZ/\e[32m<app>\e[m/pom.xml
+    where app is a (sequence of) directory name(s), like wk01/fraction of just appointmentplanner.
+    
+    
+    as well as a directory named 
+    ./examsolution
+    and a direcory called 
+    ./pristineTasks containing the initial project given to the students.
+    '
+}
+
+export scriptdir=$(dirname $(readlink -f $0))
+
+## defaults
+export publish_host=fontysvenlo.org
+export publish_path=/home/prc2/public_html/reports/2020
+export weektasks=weektasks
+export solutions=solutions
+if [ "${USER}" = "hom" ]; then
+    export SEBIRUN_DEBUG=x
+fi
+# read actual values
+source ./setup.properties
+source ${scriptdir}/sebirunner.lib
+
+if [ $# -lt 1 ]; then
+    usage
+    exit 1
+fi
+
+umask 002;
+pid=$(echo $$)
+## create a workspace
+## to speed up things, create a ramdisk and have ARENA point to it
+## using a ramdisk will speed up and maybe as important reduce wear on your real storage such as rotating disk
+## or SSD solid state disks.
+## To be able to work anyway, create an arena
+if [ -d /media/ramdisk ] ; then
+    export ARENA=/media/ramdisk/${USER}-${pid}
+elif [ -z "$ARENA" ]; then
+    export ARENA=/tmp/arena/${USER}-${pid}
+fi
+
+maybeapp=$1
+apps=""
+if grep -q ${maybeapp} apps-list.txt ; then     
+    apps="${maybeapp}"
+    shift
+else
+    apps=""
+    if [ -e apps-list.txt ]; then
+	for app in $(cat apps-list.txt); do
+	    apps="${apps} ${app}" 
+	done
+    fi
+fi
+
+export apps
+seen=""
+echo -e "application[s] = \e[42m$apps\e[m"
+
+seen=""
+while [ $# -ge 1 ]; do
+    if [ ! -d ${grp} ]; then
+	echo "${grp} is not a sub directory, are you in the correct dir?"
+	exit 1
+    fi
+    grp=$1; shift
+    for app in $(echo ${apps}); do
+	echo "checking work on $grp $app"
+	unset Last_Changed_Author
+	if [ ! -s  "${grp}/$app/last-changed-revision.txt" ]; then
+	   /usr/bin/svn info "${grp}/$app/" | \
+	    sed -re 's/"hom"/"www-data"/;s/:\s(.+)/="\1"/;s/\s/_/;s/Changed /Changed_/;s/ Root /_Root_/' \
+		> "${grp}/$app/last-changed-revision.txt"
+	fi
+	## read svn info to find last change author
+	source "${grp}/${app}/last-changed-revision.txt"
+	## ensure there is a "last-checked-revision.txt" file
+	touch "${grp}/${app}/last-checked-revision.txt"
+
+	if [ "www-data" = "${Last_Changed_Author}" ]; then
+	    echo -e "\e[33mNo commits found for ${grp} ${app}, skipping tests\e[m"
+	elif diff -q ${grp}/${app}/last-{changed,checked}-revision.txt > /dev/null; then
+	    echo -e "\e[45mlast checked is equal to last changed, no tests are run\e[m"
+	else
+	    echo -e "\e[34mRunning tests ${grp} ${app}\e[m"
+	    echo "Running BB tests"
+	    ring=$(prepTests BB ${grp} ${app})
+	    runTests BB ${ring} ${grp} ${app}
+	    # if tests all green and coverage > 75% run AB tests
+	    if allTestsGreen ${ring}/target/site/testsummary.csv ; then
+		echo -e "\e[42mall green\e[m"
+		coverage=$(${scriptdir}/jacocosummary ${ring}/target/site/jacoco/jacoco.csv)
+		if [ $coverage -ge 75 ]; then
+		    ring=$(prepTests AB ${grp} ${app})
+		    runTests AB ${ring} ${grp} ${app}
+		    ring=$(prepTests B0 ${grp} ${app})
+		    runTests B0 ${ring} ${grp} ${app}
+		    for b in 1 2 3 4; do
+			if [ -d ${solutions}/${app}/src/main/java${b} ]; then
+			    ring=$(prepTests B${b} ${grp} ${app})
+			    runTests B${b} ${ring} ${grp} ${app}
+			fi
+		    done
+		fi
+	    fi
+	    ## save last changed as checked
+	fi
+	cp "${grp}/$app/last-changed-revision.txt" "${grp}/$app/last-checked-revision.txt"
+    done
+    
+    seen="${seen} $grp"
+done
+echo "seen groups ${seen}"
+
+exit 1

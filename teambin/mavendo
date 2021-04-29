@@ -1,0 +1,93 @@
+#!/bin/bash
+
+function aldaMaven(){
+    local app=$1;shift
+    local grp=$1;shift
+    timeout 60s mvn -fn -q -P jacoco clean test \
+	    jacoco:report -Djacoco.report.title="Coverage report for ${app} ${grp}" \
+	    surefire-report:report-only -DgenerateReports=true \
+	    -Dsurefire.report.title="Surefire Report ${app} ${grp}"  | tee mvn-run-out.txt | grep "COMPILATION ERROR" > compiler-error.txt
+    
+    exit_code=$?
+    if [[ $exit_code -eq 124 ]]; then
+	echo -e "\n\n ${grp}  THE TESTS TIMED OUT, REPORTING MAY BE  INCOMPLETE\n\n" > mvn-run-out-timeout.txt
+	cat  mvn-run-out.txt >>  mvn-run-out-timeout.txt
+	mv  mvn-run-out-timeout.txt  mvn-run-out.txt
+    fi
+
+}
+
+function prc2Maven(){
+    local app=$1;shift
+    local grp=$1;shift
+    # timeout 60s mvn -fn -P jacoco -P pit -DgenerateReports=true \
+    # 	    -Dmaven.javadoc.skip=true \
+    # 	    -Djacoco.report.title="Coverage report for ${app} ${grp}" \
+    # 	    -Dsurefire.report.title="Surefire Report ${app} ${grp}" \
+    # 	    clean test jacoco:report surefire-report:report-only \
+    # 	    org.pitest:pitest-maven:mutationCoverage \
+    # 	    site  | tee mvn-run-out.txt | grep "COMPILATION ERROR" > compiler-error.txt
+    timeout 60s mvn -fn -P jacoco \
+	    -Dmaven.javadoc.skip=true \
+	    -Djacoco.report.title="Coverage report for ${app} ${grp}" \
+	    -Dsurefire.report.title="Surefire Report ${app} ${grp}" \
+	    clean test jacoco:report surefire-report:report-only site \
+	    | tee mvn-run-out.txt | grep "COMPILATION ERROR" > compiler-error.txt
+    exit_code=$?
+    if [[ $exit_code -eq 124 ]]; then
+	echo -e "\n\n ${grp}  THE TESTS TIMED OUT, REPORTING MAY BE  INCOMPLETE\n\n" > mvn-run-out-timeout.txt
+	cat  mvn-run-out.txt >>  mvn-run-out-timeout.txt
+	mv  mvn-run-out-timeout.txt  mvn-run-out.txt
+    fi
+
+}
+
+function mavendo(){
+    local ring=$1; shift
+    local app=$1; shift
+    local grp=$1; shift
+    local site=$1; shift
+    (
+	cd ${ring}
+	prc2Maven ${app} ${grp}
+	mkdir -p target/site
+	if compgen -G "target/*.xml" > /dev/null; then
+	    cp target/*.xml target/site/
+	fi
+
+	
+	## make test summary
+
+	if compgen -G  "target/surefire-reports/*.txt" > /dev/null; then
+	    cat target/surefire-reports/*.txt | aldatestsummary > target/site/testsummary.csv
+	fi
+
+	## maven may have given up on creating a html surefire report. Generate one
+	if [ ! -e target/site/surefire-report.html ]; then
+	    if [ "$site" != "siteAB" ] ; then
+		generateTestReports ${app} ${grp} jxr:test-jxr javadoc:test-javadoc
+	    else
+		generateTestReports ${app} ${grp}
+	    fi
+	fi
+	
+	## error or test run output?
+	if [ -s compiler-error.txt ]; then
+	    cp compiler-error.txt target/site/
+#	    cp maven-output.txt target/site/compiler-out.txt
+	    error_to_pre ${app} ${grp} mvn-run-out.txt target/site/mvn-run-out.html
+	else
+	    cp mvn-run-out.txt target/site/mvn-run-out.txt
+	    run_to_pre ${app} ${grp} target/site/mvn-run-out.{txt,html}
+	fi
+
+	if [ -s target/site/jacoco/jacoco.csv ] ; then
+	    coverage=$(jacocosummary target/site/jacoco/jacoco.csv)
+	else
+	    coverage="0"
+	fi
+	echo $coverage
+    )
+
+    #cp ${ring}/api.version ${ring}/target/site/
+} 

@@ -1,0 +1,10 @@
+#!/bin/bash
+## helper to list the available exams
+echo -n "available exams: "
+for i in $(ls -d sw/EXAM*); do
+    e=$(basename $i)
+    echo -n -e "\e[44m${e}\e[m "
+done
+
+## new line at end
+echo ""

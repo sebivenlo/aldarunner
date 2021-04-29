@@ -1,0 +1,161 @@
+<?xml version="1.0" ?>
+<project name="Alda Build script" basedir=".">
+    <description>
+        Run teacher tests on student code.
+    </description>
+    <!--<target name="all" depends="test, clean">-->
+    <!--</target>-->
+
+    <property file="my.properties" />
+    <property name="libs.junit_4.classpath" location="/usr/share/ant/lib/junit-4.12.jar"/>
+<!--    <property file="group.properties" />
+    <property file="target.properties" />-->
+    <!--<property file="/home/hom/.netbeans/8.2/build.properties"/>-->
+    <property environment="env"/>
+    
+    <property file="build.properties" />
+    <property name="target" location="."/>
+    <!-- do not use dots in bash variable substitutions -->
+    <property name="target.name" value="${target_name}"/>
+    <property name="testpackage" value="studentSuite"/>
+    <property name="testclass" value="StudentTestSuite"/>
+    <property name="base" location="."/>
+    <property name="src.dir" location="${env.PWD}/${target}/src/"/>
+    <property name="test.src.dir" location="${env.PWD}/${base}/test/"/>
+    <property name="build.dir" location="${env.PWD}/${target}/build"/>
+    <property name="testclass" value=""/>
+    <property name="build.classes.dir" location="${build.dir}/classes"/>
+    <property name="build.test.classes.dir" location="${env.PWD}/${target}/build/test/classes"/>
+    <property name="build.report.dir" location="${build.dir}/test/reports"/>
+    <property name="build.jacoco.dir" location="${build.dir}/test/jacoco"/>
+    <property name="build.exec.file" location="${build.dir}/test/jacoco.exec"/>
+
+    <!--<property name="testresults.dir" location="${start.dir}/doc/results" />-->
+
+    <property name="junit.lib" location="${libs.junit_4.classpath}" />
+    
+    <path id="test-classpath">
+        <pathelement path="${libs.junit_4.classpath}"/>
+        <pathelement path="${libs.hamcrest.classpath}"/>
+        <!--<pathelement path="${libs.MoocLib.classpath}"/>-->
+    </path>
+    
+   
+    <target name="compile" description="compile the project classes">
+        <mkdir dir="${build.classes.dir}"/>
+        <javac srcdir="${src.dir}" destdir="${build.classes.dir}" debug="true" includeantruntime="false"/>
+    </target>
+    
+    <target name="compile-tests" depends="compile" description="compile the test classes">
+        <mkdir dir="${build.test.classes.dir}"/>
+        <javac srcdir="${test.src.dir}/${testpackage}" destdir="${build.test.classes.dir}" debug="true" includeantruntime="false"
+        >
+            <classpath>
+                <pathelement location="${build.classes.dir}"/>
+                <pathelement path="${libs.junit_4.classpath}"/>
+                <pathelement path="${libs.hamcrest.classpath}"/>
+            </classpath>
+        </javac>
+    </target>
+    
+
+    <target name="test" depends="compile-tests" description="compile teacher tests referencing student code">
+        <mkdir dir="${build.report.dir}"/>
+        <junit printsummary="yes" fork="yes" haltonfailure="no" timeout="10000">
+            <formatter type="xml" />
+            <classpath>
+                <pathelement location="${build.classes.dir}"/>
+                <pathelement location="${build.test.classes.dir}"/>
+                <pathelement location="${libs.junit_4.classpath}"/>
+                <pathelement location="${libs.hamcrest.classpath}"/>
+            </classpath> 
+            <test todir="${build.report.dir}" name="${testclass}" />
+            <!--            <batchtest fork="true" todir="${build.report.dir}">
+                <fileset dir="test">
+                    <include name="**/StudentTestSuite.java"/>
+                </fileset>
+            </batchtest>-->
+        </junit>
+        <junitreport todir="${build.report.dir}">
+            <fileset dir="${build.report.dir}">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report format="frames" todir="${build.report.dir}" />
+        </junitreport>
+    </target>
+
+    <target name="clean">
+        <delete dir="${build.dir}" /> 
+    </target>
+
+    <target name="rmremote">
+        <exec executable="ssh" >
+            <arg value="fontysvenlo.org" />
+            <arg value="rm -rf /home/alda/public_html/pages/testresults/${group.name}/${target.name}/results/*" />
+        </exec>
+    </target>
+
+    <target name="report">
+        <move file="${start.dir}/doc/results/index.html" tofile="${start.dir}/doc/results/index.php"/>
+        <exec executable="scp" >
+            <arg value="-r" />
+            <arg value="${start.dir}/doc/results" />
+            <arg value="fontysvenlo.org:/home/alda/public_html/pages/testresults/${group.name}/${target.name}" />
+        </exec>
+        <exec executable="ssh">
+            <arg value="fontysvenlo.org" />
+            <!--<arg value="chmod -R g+ws /home/alda/public_html/pages/testresults/${group.name}/${target.name}/results/" />-->
+        </exec>
+        <delete dir="${start.dir}/doc/results/" />
+    </target>
+
+
+    <target name="error">
+        <exec executable="scp" >
+            <arg value="${start.dir}/doc/error.html" />
+            <arg value="fontysvenlo.org:/home/alda/public_html/pages/testresults/${group.name}/${target.name}/results/index.php" />
+        </exec>
+        <exec executable="scp" >
+            <arg value="${start.dir}/doc/junitres.txt" />
+            <arg value="fontysvenlo.org:/home/alda/public_html/pages/testresults/${group.name}/${target.name}/results/" />
+        </exec>
+        <exec executable="ssh">
+            <arg value="fontysvenlo.org" />
+            <arg value="chmod -R g+ws /home/alda/public_html/pages/testresults/${group.name}/${target.name}/results/" />
+        </exec>
+        <delete dir="${start.dir}/doc/results/" />
+    </target>
+
+    <target name="oomer" >
+        <exec executable="scp" >
+            <arg value="${start.dir}/doc/oomer.html" />
+            <arg value="fontysvenlo.org:/home/alda/public_html/pages/testresults/${group.name}/${target.name}/results/index.php" />
+        </exec>
+        <exec executable="scp" >
+            <arg value="${start.dir}/doc/junitres.txt" />
+            <arg value="fontysvenlo.org:/home/alda/public_html/pages/testresults/${group.name}/${target.name}/results/" />
+        </exec>
+        <exec executable="ssh">
+            <arg value="fontysvenlo.org" />
+            <arg value="chmod -R g+ws /home/alda/public_html/pages/testresults/${group.name}/${target.name}/results/" />
+        </exec>
+        <delete dir="${start.dir}/doc/results/" />
+    </target>
+
+    <target name="inflp" >
+        <exec executable="scp" >
+            <arg value="${start.dir}/doc/inflp.html" />
+            <arg value="fontysvenlo.org:/home/alda/public_html/pages/testresults/${group.name}/${target.name}/results/index.php" />
+        </exec>
+        <exec executable="scp" >
+            <arg value="${start.dir}/doc/junitres.txt" />
+            <arg value="fontysvenlo.org:/home/alda/public_html/pages/testresults/${group.name}/${target.name}/results/" />
+        </exec>
+        <exec executable="ssh">
+            <arg value="fontysvenlo.org" />
+            <arg value="chmod -R g+ws /home/alda/public_html/pages/testresults/${group.name}/${target.name}/results/" />
+        </exec>
+        <delete dir="${start.dir}/doc/results/" />
+    </target>
+
+</project>

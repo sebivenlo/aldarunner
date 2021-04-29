@@ -1,0 +1,5 @@
+#!/bin/bash
+
+export PATH=~/teambin/sebigrader.d:$PATH
+bash --norc sebigrader-base "$@"
+

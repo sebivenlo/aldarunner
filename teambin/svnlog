@@ -1,0 +1,3 @@
+#!/bin/bash
+#clean svn log that takes the limit argument (default=5)
+svn log -l ${1:-5} | perl -l40pe 's/^-+/\n/'

@@ -1,0 +1,446 @@
+#!/bin/bash
+
+function svnup(){
+    local grp=$1; shift
+    if [ -d ${grp}/.svn ]; then
+	svn up ${grp}
+	svn info ${grp} > ${grp}/svninfo.current
+    fi
+}
+
+function error_to_pre(){
+    local app=$1; shift
+    local grp=$1; shift
+    local input=$1; shift
+    local output=$1; shift
+    cat - <<EOF > ${output}
+<html>
+ <head>
+    <title>${grp} ${app} Maven Compiler Output</title>
+ </head>
+<body>
+<h1>${grp} ${app} Compiler Errors</h1>
+The errors below occured during compilation of business code and test code.
+Further processing is impossible.
+<pre style='color:#a00'>
+EOF
+    cat ${input} | sed -e's#/media/ramdisk/##g' >> ${output}
+
+    cat - <<EOF >> ${output}
+</pre>
+</body>
+EOF
+    
+
+}
+
+function run_to_pre(){
+    local app=$1; shift
+    local grp=$1; shift
+    local input=$1; shift
+    local output=$1; shift
+    cat - <<EOF > ${output}
+<html>
+ <head>
+    <title>${grp} ${app} Maven Test Run Output</title>
+ </head>
+<body>
+<h1>${grp} ${app} Test run output, maybe harmless</h1>
+The output you see here is by the output produced by the tests,
+either using simple print(ln) or errors reported by the test runner.
+<pre style='color:#00a'>
+EOF
+    cat ${input} | sed -e's#/media/ramdisk/##g' | sed -e 's#\[ERROR\]#<span style="color:red">[ERROR]</span>#' >> ${output}
+
+    cat - <<EOF >> ${output}
+</pre>
+</body>
+EOF
+    
+
+}
+
+
+## test if the summary als nummer of tests == passed tests
+## @param csv file to evaluate 
+function allTestsGreen(){
+    local csv=$1; shift
+    local oldifs="$IFS"
+    if [ ! -e "$csv" ] ; then
+	return 0
+    fi
+    x=$(tail -1 $csv)
+    IFS=',' read -ra LINE <<< "$x"
+    IFS="$OLDIFS"
+    if [ "${LINE[0]}" == "${LINE[1]}" -a "${LINE[0]}" != "0" ]; then
+	return 0
+    else
+	return 1
+    fi
+}    
+
+##
+## evaluate test report with optional maven args
+function generateTestReports(){
+    local app=$1; shift
+    local grp=$1; shift
+    if [  -s target/site/testsummary.csv ]; then ## test results
+#	echo generate maven test report from test xml files
+	mvn -fn -q -DskipTests \
+	    -Dmaven.javadoc.skip=true \
+	    surefire-report:report-only site -DgenerateReports=false \
+	    -Dsurefire.report.title="Surefire Report ${app} ${grp}" $@
+    fi
+}
+
+function runTests(){
+    local ring=$1; shift
+    local app=$1; shift
+    local grp=$1; shift
+    local site=$1; shift
+    (
+	cd ${ring}/
+	mkdir -p target/site #{surefire-reports,site}
+	mvn -fn  -q compile test-compile | tee compiler-out.txt
+	# process compiler output if empty not empty1
+	if [ -s compiler-out.txt ]; then
+	    cp compiler-out.txt target/site/
+	    error_to_pre ${app} ${grp} compiler-out.txt target/site/compiler-out.html
+	else
+	    rm -f compiler-out.txt;
+	    ## actual test run
+	    timeout 20s mvn -fn -q test | tee mvn-run-out.txt
+	    ## catch timeout
+	    exit_code=$?
+	    if [ $exit_code -eq 124 ]; then # process failed with timeout
+		echo -e "\n\n ${grp}  THE TESTS TIMED OUT, REPORTING MAY BE  INCOMPLETE\n\n" > mvn-run-out-timeout.txt
+		cat  mvn-run-out.txt >>  mvn-run-out-timeout.txt
+		mv  mvn-run-out-timeout.txt  mvn-run-out.txt
+	    fi
+	    
+	    ## copy raw maven output text
+	    cp mvn-run-out.txt target/site/
+	    ## format for <pre> for viewing
+	    run_to_pre ${grp} mvn-run-out.txt target/site/mvn-run-out.html
+	    # collect test results in summary file for later eval
+	    # count tests summary text files
+	    cat target/surefire-reports/*.txt | aldatestsummary > target/site/testsummary.csv
+	    if [ "$site" != "siteA" ] ; then
+		generateTestReports ${app} ${grp} jxr:test-jxr javadoc:test-javadoc
+	    else
+		generateTestReports ${app} ${grp}
+	    fi
+	    
+
+	    # evaluate test summary
+	    if [ -f target/site/testsummary.csv ]; then
+		if allTestsGreen target/site/testsummary.csv ; then
+#		    echo -e "\e[42m++++ all green, run coverage ++++ \e[m"
+		    timeout 20s mvn -fn -q -P jacoco test \
+			jacoco:report site -DgenerateReports=false \
+			-Djacoco.report.title="Coverage report for ${app} ${grp}"
+		    jacocosummary target/site/jacoco/jacoco.csv
+		fi
+	    fi
+	fi
+    )
+    reportdir=reports/${grp}/${app}/$site
+    rm -fr ${reportdir}
+    mkdir -p ${reportdir}
+#    echo -e "\e[45mcopy test reports to ${reportdir}\e[m"
+#    cp ${ring}/api.version ${ring}/target/site/
+    rsync -a ${ring}/target/site/ ${reportdir}/
+}
+
+## get the version used by the group
+## to determine which test set to run.
+## Sideeffect file ${app}/api.version is updated/written,
+## so the website does not have to.
+## @param group
+## @param app application
+## @param mvnCoord to determine version
+function getApiVersion() {
+    local grp=$1; shift
+    local app=$1; shift
+    local mvnCoord=$1; shift
+    local pomfile=$(find ${grp} -name pom.xml | grep ${app})
+    local version=$(getapiversion.pl ${pomfile} ${mvnCoord} 0.1)
+    echo -n "v${version}" 
+}
+
+## all tests are run in an arena, by copying the sources
+## and optionally the teachers tests to a faster storage area, the ARENA.
+function cleanup(){
+    local app=$1; shift
+    local mode=$1; shift
+    if [ ! -z "${ARENA}" ]; then
+	rm -fr ${ARENA}/${app}${mode}
+    fi
+}
+source ${HOME}/teambin/mavendo
+##
+## Run the test of the student project as committed by the group and
+## commit the resulting reports to the publication server.
+## @param app application directory
+## @param group group
+##
+function bbrun(){
+    local app=$1; shift
+    local grp=$1; shift
+    # pomfile=$(find ${grp} -name pom.xml -type f | grep ${app})
+    # if [ -z "${pomfile}" ] ; then
+    # 	echo $app pomfile not found.
+    # 	exit 1
+    # fi
+    srcdir=${grp}/${app}
+#    echo -e "running all tests from source dir \e[32m${srcdir}\e[m on \e[32m${app}\e[m for \e[32m${grp} for api ${apiversion}\e[m"
+    ring=${ARENA}/${app}BB
+    local testpom=solutions/${app}/pom.xml
+    if [ ! -e ${testpom} ]; then
+	echo -e "cannot find  \e[41m ${testpom}\e[m"
+	exit 1
+    fi
+    mkdir -p ${ring}/target/site
+    if diff -qr weektasks/${app}/src ${grp}/${app}/src > /dev/null ; then
+	echo 'no work done ' > ${ring}/target/site/nowork
+	# return what mavendo would return
+	echo 0
+    else
+
+	rsync -a ${srcdir}/ ${ring}/
+	cat solutions/${app}/pom.xml | sed -e "s/solution/${grp}/" > ${ring}/pom.xml
+	#echo -n "${apiversion}" > ${ring}/api.version
+	#    runTests $ring $app $grp site
+	>&2 echo "running mavendo with $ring $app $grp site"
+	mavendo $ring $app $grp site
+    fi
+}
+
+##
+## Run the teacher's test on the student project as committed by the group and
+## commit the resulting reports to the publication server.
+## @param app application directory
+## @param group group
+##
+function abrun(){
+    local app=$1; shift
+    local grp=$1; shift
+    pomfile=$(find ${grp} -name pom.xml -type f | grep ${app})
+    if [ -z "${pomfile}" ] ; then
+	echo $app pomfile not found.
+	exit 1
+    fi
+    srcdir=$(dirname ${pomfile})
+    if [ ! -e ${testpom} ]; then
+	echo -e "cannot find  \e[41m ${testpom} \e[m"
+	exit 1
+    fi
+    ring=${ARENA}/${app}AB
+    mkdir -p ${ring}/src/{main,test}
+    rsync -a ${srcdir}/src/main/ ${ring}/src/main/
+    rsync -a solutions/${app}/src/test/ ${ring}/src/test/
+    cat solutions/${app}/pom.xml | sed -e "s/solution/${grp}/" > ${ring}/pom.xml
+    mavendo $ring $app $grp siteAB
+}
+
+function hasParentPom(){
+    local app=$1; shift
+    local pomfile=${app}/pom.xml
+    grep -qe  '<packaging>pom</packaging>' solutions/${pomfile}
+    return
+}
+
+## Read modules from pom file.
+function mavenModules(){
+    local pomfile=$1; shift
+    local mods=""
+    for mod in $(grep -w module ${pomfile} \
+		 | sed -re 's/\s+<module>//;s/<\/module>//'); do
+	mods="${mods} ${mod}"
+    done
+    echo $mods
+}
+
+function mavenParentPrep(){
+    ## assuming app is of from 'wkXX/someapp'
+    local app=$1; shift
+    local grp=$1; shift
+    local srcdir=${grp}/${app}
+    local ring=${ARENA}/$(basename ${app})BB
+    mkdir -p ${ring}/${site}
+    rsync -a ${srcdir}/ ${ring}/
+    cat solutions/${app}/pom.xml | sed -e "s/solution/${grp}/" > ${ring}/pom.xml
+    if [ -s solutions/${app}/mavenModules ]; then
+	cp solutions/${app}/mavenModules ${ring};
+    else
+	mavenModules solutions/${app}/pom.xml > ${ring}/mavenModules
+    fi
+    for mod in $(mavenModules ${ring}/pom.xml); do
+	cat solutions/${app}/${mod}/pom.xml | sed -e "s/solution/${grp}/" > ${ring}/${mod}/pom.xml
+    done
+    ## return the location of the test runs.
+    echo ${ring}
+}
+
+function mvnParentRun(){
+    local ring=$1; shift
+    local app=$1; shift
+    local grp=$1; shift
+    local site=$1; shift
+    (
+	cd ${ring}
+	
+	for mod in $(cat mavenModules); do
+	    (
+		echo -e "running tests on module \e[42m${mod}\e[m"
+		cd ${mod}
+		if [ ! -f target/jacoco.exec ]; then
+		    ## do a full maven run.
+		    mkdir -p ${site}
+    		    mvn -P jacoco test surefire-report:report-only jacoco:report -Dmaven.javadoc.skip=true site \
+			| tee ${site}/mvn-run-out.txt | grep "COMPILATION ERROR" > ${site}/compiler-error.txt
+		    if compgen -G  "target/surefire-reports/*.txt" > /dev/null; then
+			cat target/surefire-reports/*.txt | aldatestsummary > ${site}/testsummary.csv
+		    fi
+		    if [ -s target/site/jacoco/jacoco.csv ]; then
+			cp target/site/jacoco/jacoco.csv ${site}
+			cov=$(jacocosummary ${site}/jacoco.csv)
+			echo -e "  coverage in modules ${mod} \e[42m${cov}\e[m" 
+		    fi
+		fi
+	    )
+	done
+	mkdir -p ${site}/jacoco/
+	for f in $(find ${ring} -name testsummary.csv); do tail -1 $f; done | testsummary-sum > ${site}/testsummary.csv
+	for f in $(find ./ -name jacoco.csv); do cat $f; done | jacocosummary-sum > ${site}/jacoco/jacoco.csv
+    )
+}
+
+function pomName(){
+    local file=$1; shift
+    grep -w name ${file} | sed -re 's/\s*<name>//g;s/<\/name>//'
+}
+
+#  function parentCollectTestSummary(){
+    
+# }
+
+## prepare siteXX web for parent project  for publish in the ring
+function parentWeb(){
+    local ring=$1; shift
+    local site=$1; shift
+    local relpath='..'
+    local jrelpath='../..'
+    
+    local siteIndex=${site}/surefire-report.html
+    local jacocoIndex=${site}/jacoco/index.html
+    mkdir -p ${site}/jacoco
+    (
+	cd ${ring}
+	for mod in  $(cat mavenModules ); do
+	    rsync -a ${mod}/target/site/ ${mod}/${site}/
+	done
+	## make parent site
+	mkdir -p ${site}
+	cp mavenModules ${site}
+	parentName=$(pomName pom.xml)
+	cat - <<EOF > ${siteIndex}
+<html>
+<head>
+<title>Sebi Maven Module Test Summary Index</title>
+<link rel="stylesheet" href="../../../../css/maven-base.css" />
+    <link rel="stylesheet" href="../../../../css/maven-theme.css" />
+    <link rel="stylesheet" href="../../../../css/site.css" />
+    <link rel="stylesheet" href="../../../../css/print.css" media="print" />
+</head>
+<body class ='composite'>
+<div id='banner'>
+<h5>${parentName}&nbsp;Sebi Maven Module Test Summary Index</h5>
+
+<div  class='expanded'>
+<p>This maven modular project has the following sub modules:</p>
+<ul>
+EOF
+	for mod in $(cat mavenModules); do
+	    index="${mod}/${site}/surefire-report.html"
+	    name=$(pomName ${mod}/pom.xml)
+	    #    echo $name			
+	    index1=""
+	    if [ -s ${index} ] ; then
+		index1="<a href=\"${relpath}/${index}\">surefire report on ${mod}</a>"
+	    fi
+	    cat - <<EOF >> ${siteIndex}
+    <li class='none'>${name}&nbsp;${index1}&nbsp</li>
+EOF
+	done
+	cat - <<EOF >> ${siteIndex}
+</ul>
+</div>
+</div>
+</body>
+</html>
+EOF
+	## next jacoco index
+	cat - <<EOF > ${jacocoIndex}
+<html>
+<head>
+<title>Sebi Maven Module Jacoco Summary Index</title>
+<link rel="stylesheet" href="${jrelpath}/../../../css/maven-base.css" />
+    <link rel="stylesheet" href="${jrelpath}/../../../css/maven-theme.css" />
+    <link rel="stylesheet" href="${jrelpath}/../../../css/site.css" />
+    <link rel="stylesheet" href="${jrelpath}/../../../css/print.css" media="print" />
+</head>
+<body class ='composite'>
+<div id='banner'>
+<h5>${parentName}&nbsp;Sebi Maven Module Jacoco Summary Index</h5>
+
+<div  class='expanded'>
+<p>This maven modular project has the following sub modules:puk here</p>
+<ul>
+EOF
+	for mod in $(cat mavenModules); do
+	    index="${mod}/${site}/jacoco/index.html"
+	    name=$(pomName ${mod}/pom.xml)
+	    #    echo $name			
+	    if [ -s ${jacocoindex} ] ; then
+		jacocoidx="<a href=\"${jrelpath}/${index}\">Jacoco report for ${mod}</a>"
+	    else
+		jacocoidx="No report for ${mod}"
+	    fi
+    
+	    cat - <<EOF >> ${jacocoIndex}
+    <li class='none'>${jacocoidx}</li>
+EOF
+
+	done
+
+	cat - <<EOF >> ${jacocoIndex}
+</ul>
+</div>
+</div>
+</body>
+</html>
+EOF
+    )
+    # done
+}
+
+function publishParent(){
+    local publish_host=$1; shift
+    local publish_path=$1; shift
+    local ring=$1; shift
+    local site=$1; shift
+    local app=$1; shift
+    local grp=$1; shift
+    (
+	cd ${ring}
+	ssh ${publish_host} mkdir -p ${publish_path}/${grp}/${app}/${site}
+	rsync -rplogD --omit-dir-times --del ${ring}/${site}/ ${publish_host}:${publish_path}/${grp}/${app}/${site}/
+	for mod in $(cat mavenModules); do
+	    ssh ${publish_host} mkdir -p ${publish_path}/${grp}/${app}/${mod}/${site}/
+	    rsync -rplogD --omit-dir-times --del ${mod}/${site}/ ${publish_host}:${publish_path}/${grp}/${app}/${mod}/${site}/
+	done
+    )
+}
+
+

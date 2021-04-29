@@ -1,0 +1,67 @@
+#!/bin/bash
+## Finds a resource searching upward (only) in a directory tree.
+##
+## @param resource (file or dir) to find
+## @return empty string if not found, 
+##     the path to the resource if found as an absolute path
+function findUpTree(){
+   local tofind=$1
+   local found=''
+   local dir=$(pwd)
+   while [  ! $dir = "/" ] ; do
+   	 if [ -e ${dir}/${tofind} ]; then
+	     found=${dir}/${tofind}
+	     break
+	 fi
+	 dir=$(dirname ${dir})
+   done
+   echo -n ${found}
+}
+
+## Collects all instances of the toFind in a colon seperated path
+## looking upwards in the tree starting from the current directory
+## @param toFind the search parameter
+## @return the path containing all instances found
+function collectUpTree(){
+    local tofind=$1
+    local found=''
+    local dir=$(pwd)
+    while [  ! $dir = "/" ] ; do
+	if [ -e ${dir}/${tofind} ]; then
+	       if [ -z ${found} ] ; then
+		   found=${dir}/${tofind}
+	       else
+		   found=${dir}/${tofind}:${found}
+	       fi
+	fi
+	dir=$(dirname ${dir})
+    done
+    echo -n ${found}
+}
+
+##
+## source (read and interpret into current process) the files
+## given in the path.
+## @param path of files to be sourced.
+function sourcePath(){
+    local source_path=$1
+    IFS=':' read -ra ADDR <<< "$source_path"
+    for i in "${ADDR[@]}"; do
+#	echo ${i}
+	source ${i}
+    done
+}
+
+##
+## send all files of a given type/extension. Intended to publish or update
+## .zip and .pdf files.
+## @param extension of file to send.
+function sendFiles(){
+    local t=$1
+    # test if there are any such files.
+    if compgen -G *.${t} > /dev/null ; then
+	# copy all pdf files to
+	echo sending *.${t}
+	rsync -aq --chmod=u+rw,g+rw,o+r *.${t} ${phost}:${webroot}/${t}/
+    fi
+}

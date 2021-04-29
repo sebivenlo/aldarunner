@@ -1,0 +1,44 @@
+#!/usr/bin/perl -w
+my ($tests, $fails,$errs,$skips,$time,$passed);
+my ($group, $pack, $class, $instruction_missed, $instruction_covered,
+    $branch_missed, $branch_covered, $line_missed, $line_covered, $complexity_missed, $complexity_covered, $method_missed, $method_covered);
+my ($sum_instruction_missed, $sum_instruction_covered,
+    $sum_branch_missed, $sum_branch_covered, $sum_line_missed, $sum_line_covered, $sum_complexity_missed, $sum_complexity_covered, $sum_method_missed, $sum_method_covered);
+$sum_instruction_missed=0;
+$sum_instruction_covered=0;
+$sum_branch_missed=0;
+$sum_branch_covered=0;
+$sum_line_missed=0;
+$sum_line_covered=0;
+$sum_complexity_missed=0;
+$sum_complexity_covered=0;
+$sum_method_missed=0;
+$sum_method_covered=0;
+
+    
+print qq(GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED\n);
+
+while(<>){
+    chomp;
+    if ( m/^summary,summary,summary,/ ) {
+	# skip
+    } else {
+    ($group, $pack, $class, $instruction_missed, $instruction_covered,
+     $branch_missed, $branch_covered, $line_missed, $line_covered, $complexity_missed, $complexity_covered, $method_missed, $method_covered)=split/,/;
+    if ( $instruction_missed =~ m/^\d+$/ ) {
+	$sum_instruction_missed += $instruction_missed;
+	$sum_instruction_covered += $instruction_covered;
+	$sum_branch_missed += $branch_missed;
+	$sum_branch_covered += $branch_covered;
+	$sum_line_missed += $line_missed;
+	$sum_line_covered += $line_covered;
+	$sum_complexity_missed += $complexity_missed;
+	$sum_complexity_covered += $complexity_covered;
+	$sum_method_missed += $method_missed;
+	$sum_method_covered += $method_covered;
+	print qq($_\n);
+    }
+    }
+}
+
+print qq(summary,summary,summary,$sum_instruction_missed,$sum_instruction_covered,$sum_branch_missed,$sum_branch_covered,$sum_line_missed,$sum_line_covered,$sum_complexity_missed,$sum_complexity_covered,$sum_method_missed,$sum_method_covered\n);

@@ -1,0 +1,10 @@
+#!/bin/bash
+pwrecord=$(grep -e "^${USER}:" /etc/passwd)
+IFS=':' read -r -a array <<< "$pwrecord"
+#array=(${pwrecord//:/ })
+fullname=${array[4]}
+fullname=$(echo $fullname | sed -e 's/,//g')
+echo -e ${fullname}
+# for f in "${!array[@]}"; do
+#     echo ${array[f]}
+# done

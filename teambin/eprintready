@@ -1,0 +1,60 @@
+#!/bin/bash
+# run this in a MC-Project/.../copies dir
+# rename exams to shorter names
+scriptdir=$(dirname $0)
+dirname=$(basename $(pwd))
+if [ "${dirname}" !=  "copies" ] ; then
+    echo -e sorry, need to be in "\033[1;33mcopies\033[m" directory
+    exit 1
+fi
+FULL_USERNAME=$(getfullname)
+anonexam=''
+n=1
+firstfile=''
+lastfile=''
+if grep -q anon "../source.tex" ; then
+    echo -e "File \033[1;33m../students.csv\033[m is missing, assuming anonymous exams."
+    n=$(ls sheet-*1A.pdf | wc -l)
+    firstfile=$(printf "s%04d.pdf" 1)
+    lastfile=$(printf "s%04d.pdf" ${n})
+    anonexam='\providecommand\ExamFiles{\vspace{2cm}\textbf{This exam contains \Mexamcount\ exams with file names \firstfile\ through \lastfile.}\vspace{2cm}}'
+    uitdeel=${scriptdir}/Uitdeelinstructie-AMC-examens-anon.pdf
+else
+    uitdeel=${scriptdir}/Uitdeelinstructie-AMC-examens.pdf
+fi
+
+mkdir -p out
+examname="$(echo $(basename $(dirname $(pwd))) | tr '_' ' ')"
+for i in 1 2; do
+    pdflatex -jobname=exammanifest -output-directory out  <<EOF
+\def\Author{${FULL_USERNAME}}
+\date{}
+\def\firstfile{${firstfile}}
+\def\lastfile{${lastfile}}
+\def\Mexamcount{${n}}
+$anonexam
+\def\ExamName{$examname}
+\input exammanifest
+EOF
+
+done
+cp out/exammanifest.pdf .
+rm -fr out
+
+filecount=$(ls sheet*0S.pdf | wc -l)
+if [ $filecount -lt 1 ]; then
+    echo no exam files here
+fi
+
+for i in sheet*0S.pdf; do  mv ${i} $(echo ${i} | sed -e's/heet-//;s/-0S//') ; done
+
+# collect answerforms into one file
+filecount=$(ls sheet*1A.pdf | wc -l)
+if [ $filecount -lt 1 ]; then
+    echo no answer forms here
+fi
+pdftk ${uitdeel} exammanifest.pdf *1A.pdf cat output forms.pdf
+pdftk s0001.pdf cat 1 output voorbeeld-voorblad.pdf
+rm -f *1A.pdf
+echo "collected ${filecount} files, now copy all pdf files to an usb stick for printing."
+echo "have the \"forms.pdf\" file printed single sides, the \"s*.pfd\" files in any way you want them."

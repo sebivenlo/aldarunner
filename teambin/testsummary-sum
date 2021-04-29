@@ -1,0 +1,22 @@
+#!/usr/bin/perl -w
+my ($tests, $fails,$errs,$skips,$time,$passed);
+print qq(tests,passed,fails,errs,skips,time\n);
+
+$tests=0;
+$passed=0;
+$fails=0;
+$errs=0;
+$skips=0;
+$time=0.0;
+while(<>){
+  chomp;
+  if (/^(\d+),(\d+),(\d+),(\d+),(\d+),(\d+?(\.\d+)?)$/) {
+    $tests += $1;
+    $passed += $2;
+    $fails += $3;
+    $errs += $4;
+    $skips += $5;
+    $time += $6;
+  }
+}
+print qq($tests,$passed,$fails,$errs,$skips,$time\n);

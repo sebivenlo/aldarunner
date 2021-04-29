@@ -1,0 +1,23 @@
+#!/bin/bash
+# runs pdflatex to create pdf from simple questions
+target=$(basename $(dirname $(pwd)))
+material=material
+docname=$(basename $(dirname $(pwd)))
+if [ $# -gt 0 ]; then material=$1; shift; fi 
+echo material=$material
+# make sure we have a out-dir
+mkdir -p out
+# latex two times
+#for i in seq 1 2; do
+pdflatex -recorder -jobname=${docname} -output-directory out  <<EOF
+\def\material{$material}
+\documentclass[dvipsnames,10pt,twoside]{article}
+\usepackage[utf8]{inputenc}
+\providecommand\StudentId{Candidate~Charles~x9199909~EN}
+\providecommand\StickNr{EN}
+\providecommand\ExamTitle{${target}}
+%%\providecommand\Spacing{\onehalfspacing}
+\input assessmentdoctest_en
+EOF
+#done
+cp out/*.pdf .

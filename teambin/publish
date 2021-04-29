@@ -1,0 +1,63 @@
+#!/bin/bash
+# version 2.1.
+# convention over configuration.
+# convention: publish publishes to webserver webroot.
+# webroot is configured in the module directory typically <<module-sandbox>>/trunk/
+# the config file is called .webproperties. It specifies "phost" and "webroot" as in
+# fontysvenlo.org and /home/java1/public_html.
+# * if there is a .webproperties file in the current directory,
+#   then that will overwrite or complete the setting(s) in .webpropeties up the directory tree.
+#
+# The publish script
+# * publishes any zip and file(s) in this directory to <<webroot>>/zip
+# * publishes any and all pdf file(s) in this directory to <<webroot>>/pdf,
+#   and does NOT distinguis between pdf files such as lab tasks,
+#   module descriptions or sheets.
+# * if the setting target=web is set,
+#   then the current directory will be published as web site. This
+#   publishing is done checking the current directories content out on
+#   the web server and execute make, if the current directory contains a
+#   Makefile.
+
+## shortcut if publish script exists in current directory, then let that
+## take over from whatever is defined in this script.
+if [ -x ./publish ]; then
+    ./publish
+    exit $?
+elif [ -x ../publish ]; then
+    ../publish
+    exit $?
+elif [ -x ../../publish ]; then
+    ../../publish
+    exit $?
+fi
+phost=fontysvenlo.org
+webroot=~/public_html
+target=default
+echo v2.0
+# load helper script
+## finduptree is contains helper functions
+source finduptree
+# source the settings if any
+p=$(collectUpTree .webproperties)
+echo path=${p}
+# source all .webproperties in root to current order
+if [[ ! -z ${p} ]]; then 
+    sourcePath ${p}
+fi
+cat <<EOF
+Found properties:
+    phost='${phost}'
+    webroot='${webroot}'
+    target='${target}'
+EOF
+
+if [[ ${target} == web ]]; then
+    ssh -A ${phost} "umask 002 ; cd ${webroot}; svnwrap svn update ;  make all"
+fi
+
+# see if there is any other publishing work to do.
+sendFiles pdf
+sendFiles zip
+
+exit 0

@@ -1,0 +1,64 @@
+#!/bin/bash
+
+#  catch INT signal (interrupt== ctrl-C) and then call stop_th_train
+trap abort_script INT
+
+function abort_script(){
+    echo -e "\e[43;5m aborted operation \e[m"
+    exit 1
+}
+
+scriptdir=$(dirname $0)
+source ../default.properties
+exam_date=$(basename $(pwd))
+
+event=${module_name}${exam_date}
+source ./setup.properties
+
+rm template.csv
+
+cat <<EOF > template.csv
+event,project,testclass,method,passfail,weight
+EOF
+
+for project in ${projects}; do
+    for xml in $(find examsolution/${project} -name TEST-*.xml);  do
+	testxml2gradelist.pl ${project} ${xml} >> template.csv
+    done
+    echo -e "created template for \e[42m${project}\e[m"
+done
+
+
+if [ ! -s result.csv ]; then
+    cat <<EOF > result.csv
+event,stick,testclass,method,passfail,score
+EOF
+fi
+
+function processExam(){
+    local exam=$1; shift
+    local tfile=/tmp/${exam}-tmp.txt
+    rm -fr ${tfile}
+    for xml in $(find sw/${exam} -name "TEST-*.xml");  do
+	testxml2gradelist.pl ${exam} ${xml} | tee -a ${tfile} >> result.csv
+    done
+    testsfound=0
+    if [ -s ${tfile} ]; then
+	testsfound=$(cat ${tfile} | wc -l)
+    fi
+    echo "processed ${exam}, found ${testsfound} tests"
+}
+
+if [ $# -ge 1 ]; then
+    while [ $# -ge 1 ]; do
+	exam=$1; shift
+	processExam ${exam}
+    done
+else
+    for exam in sw/EXAM*; do
+	exam=$(basename ${exam})
+	processExam ${exam}
+    done
+fi
+
+menu

@@ -1,0 +1,14 @@
+#!/bin/bash
+dirs=""
+for d in $(find . -name surefire-reports -type d); do
+    dirs="${dirs} ${d}"
+done
+
+files=""
+for i in $(echo ${dirs}); do
+    for file in $(ls ${i}/*.txt); do
+	files="${files} $file"
+    done
+done
+
+cat ${files} | aldatestsummary	       

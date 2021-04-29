@@ -1,0 +1,26 @@
+#!/usr/bin/perl -w
+my ($tests, $fails,$errs,$skips,$time,$passed);
+print qq(tests,passed,fails,errs,skips,time\n);
+
+$tests=0;
+$fails=0;
+$errs=0;
+$skips=0;
+$time=0.0;
+while(<>){
+  chomp;
+  if (/^Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+), Time elapsed: (\d+?(\.\d+)?) s/) {
+    $tests += $1;
+    $fails += $2;
+    $errs += $3;
+    $skips += $4;
+    $time += $5;
+  }
+}
+
+$passed = $tests;
+$passed -=$fails;
+$passed -=$errs;
+$passed -=$skips;
+
+print qq($tests,$passed,$fails,$errs,$skips,$time\n);

@@ -1,0 +1,5 @@
+#!/bin/bash
+while [ $# -gt 0 ]; do
+    g=$1; shift
+    svn co svn+ssh://fontysvenlo.org/home/svn/2021/prc2/${g}/trunk ${g}
+done

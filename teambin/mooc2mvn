@@ -1,0 +1,13 @@
+#!/bin/bash
+scriptdir=$(dirname $0)
+pomfile=${scriptdir}/moocpom.xml
+source=$1
+target=$(basename ${source})
+
+mkdir -p ${target}/src/{main,test}/java
+
+cp -r ${source}/src/* ${target}/src/main/java
+cp -r ${source}/test/* ${target}/src/test/java
+
+cp ${pomfile} ${target}/pom.xml
+

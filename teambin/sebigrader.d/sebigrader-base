@@ -1,0 +1,45 @@
+#!/bin/bash
+
+if [ ! -e ../default.properties ]; then
+    echo -e "your need to be in a directory whose parent has a file called \e[34mdefault.properties\e[m "
+    echo -e "Your working directory should be of the type \e[32m..../builds/<somedate>\e[m."
+    echo -e "Go to the proper directory (using the cd command or equivalent) and retry."
+    echo -e "Hope to see you soon :-), bye!"
+    exit 1
+fi
+
+javaversion=java11
+if [ ! -s setup.properties ]; then
+    echo "file setup.properties is missing. STOP"
+    exit 1
+fi
+
+#echo $javaversion
+
+eval $(_setJava ${javaversion})
+
+if [ ! -d examsolution ]; then
+    echo "directory examsolution is missing. STOP"
+    exit 1
+fi
+
+if [ ! -d examproject ]; then
+    echo "directory examproject is missing. STOP"
+    exit 1
+fi
+
+
+if [ ! -d sw ] ; then
+    echo -e "To make me do my work, I need a subdirectory containing the students work and it needs to be called \e[32m'sw'\e[m"
+    echo -e "In that directory I expect a \e[34m'exam sandbox'\e[m with the name pattern \e[32mEXAMddd\e[m, where \e[7mddd\e[m stands for some exam stick number."
+    exit 1
+fi
+source ../default.properties
+exam_date=$(basename $(pwd))
+export event=${module_name}${exam_date}
+export db=${module_name}_${exam_date}
+export PS1='\e[45msebigrader>>\e[m '
+export PATH=~/teambin/sebigrader.d:$PATH
+sebigrader-init
+menu
+bash --norc "$@"

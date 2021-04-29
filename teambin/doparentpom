@@ -1,0 +1,66 @@
+#!/bin/bash
+mods=""
+for mod in $(grep -w module pom.xml \
+		 | sed -re 's/\s+<module>//g;s/<\/module>//'); do
+    mods="${mods} ${mod}"
+    (
+    	cd ${mod}
+ 	if [ ! -f target/jacoco.exec ]; then
+    	    mvn clean -P jacoco test surefire-report:report-only jacoco:report -Dmaven.javadoc.skip=true site
+	fi
+    )
+done
+
+function pomName(){
+    local file=$1; shift
+    grep -w name ${file} | sed -re 's/\s*<name>//g;s/<\/name>//'
+}
+
+relpath='../..'
+mkdir -p target/site
+parentName=$(pomName pom.xml)
+cat - <<EOF > target/site/index.html
+<html>
+<head>
+<title>Sebi Maven Module Summary Index</title>
+<link rel="stylesheet" href="./css/maven-base.css" />
+    <link rel="stylesheet" href="./css/maven-theme.css" />
+    <link rel="stylesheet" href="./css/site.css" />
+    <link rel="stylesheet" href="./css/print.css" media="print" />
+</head>
+<body class ='composite'>
+<div id='banner'>
+<h5>${parentName}&nbsp;Sebi Maven Module Summary Index</h5>
+
+<div  class='expanded'>
+<p>This maven modular project has the following sub modules:</p>
+<ul>
+EOF
+for mod in $(echo ${mods}); do
+    index="${mod}/target/site/index.html"
+    name=$(pomName ${mod}/pom.xml)
+#    echo $name			
+    index1=""
+    if [ -s ${index} ] ; then
+	index1="<a href=\"${relpath}/${index}\">${name}</a>"
+    fi
+    jacocoindex="${mod}/target/site/jacoco/index.html"
+    if [ -s ${jacocoindex} ] ; then
+	jacocoindex="<a href=\"${relpath}/${jacocoindex}\">Jacoco report for ${name}</a>"
+    else
+	jacocoindex=""
+    fi
+    
+    cat - <<EOF >> target/site/index.html
+    <li class='none'>${index1} ${jacocoindex}</li>
+EOF
+
+done
+
+cat - <<EOF >> target/site/index.html
+</ul>
+</div>
+</div>
+</body>
+</html>
+EOF

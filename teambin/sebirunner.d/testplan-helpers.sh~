@@ -1,0 +1,24 @@
+#!/bin/bash
+
+## execute the tests with coverage measurement.
+## @pre The src tree and pom file are prepared.
+## @post the test results are aggregated under target/site/
+## @param arena the place where the tests are executed.
+## 
+function testWithJacoco(){
+    local arena=$1; shift
+    (
+	cd ${arena}
+	mkdir -p target/site
+	timeout 60s mvn -q -fn -P jacoco test jacoco:report surefire-report:report-only \
+	    | tee target/site/mvn-run-out.txt | grep "COMPILATION ERROR" > target/site/compiler-error.txt
+	cat  target/surefire-reports/*.txt | sebitestsummary >  target/site/testsummary.csv
+	jfile="target/site/jacoco/jacoco.csv"
+	if [ -s ${jfile} ]; then
+	    jacocosummary ${jfile} > target/site/jacocoCoverage.txt
+	fi
+    )   
+}
+
+export -f testWithJacoco
+

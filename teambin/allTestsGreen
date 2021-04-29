@@ -1,0 +1,15 @@
+#!/usr/bin/perl -w
+
+open(CSV, "<$ARGV[0]") or die qq(cannot open csv file\n);
+my ($tests,$pass,$fail,$err,$ignore,$time);
+while(<CSV>){
+    chomp;
+    ($tests,$pass,$fail,$err,$ignore,$time)=split/;/;
+    
+    if ($tests =~ m/\d+/){
+	if ($tests == $pass) exit 0;
+	exit 1;
+    }
+
+}
+

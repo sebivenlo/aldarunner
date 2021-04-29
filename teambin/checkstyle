@@ -1,0 +1,8 @@
+#!/bin/bash
+export JAVA_HOME=/usr/lib/jvm/jdk-11.0.6+10
+export PATH=${JAVA_HOME}/bin:$PATH
+export config_file=~/.m2/sebivenlo_checks.xml
+JAR=/usr/share/checkstyle/checkstyle-8.29-all.jar
+
+java -jar ${JAR} com.puppycrawl.tools.checkstyle.Main -c ${config_file} "$@"
+

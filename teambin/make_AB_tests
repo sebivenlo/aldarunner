@@ -1,0 +1,113 @@
+#!/bin/bash
+
+
+if [ ! -d examsolution ]; then
+    echo -e "\033[41mmake sure there is an examsolution\033[m"
+    exit 1
+fi
+if [ ! -d examproject ]; then
+    echo -e "\033[41mmake sure there is an examproject\033[m"
+    exit 1
+fi
+
+
+function prep_exam(){
+    local target=$1
+    local exam=$(basename ${target})
+    local task=$2
+    local sourceT=$3
+    local sourceB=$4
+    echo "create sample exam using target=${target}, task=${task}"
+    echo "  business from ${sourceB}, test from ${sourceT}"
+    mkdir -p  ${target}/${task}/src/
+    cp examsolution/${task}/pom.xml ${target}/${task}/
+    rsync -a ${sourceT}/${task}/src/test/ ${target}/${task}/src/test/
+    rsync -a ${sourceB}/${task}/src/main/ ${target}/${task}/src/main/
+    find ${target}/${task} -name pom.xml -type f -exec sed -i "s/:: solution</:: ${exam}</" {} \;
+}
+
+export PROJECTTYPE=netbeans
+source assessment_export_helper
+
+all_exam_combinations(){
+    local task=$1
+    
+    ## intitial  stuff
+    sourceB=examsolution
+    sourceT=examsolution
+    ## 199 source and test from solution
+    ## perfect  student
+    target=sx/examproject-EXAM999
+    perfect_solution=sx/examproject-EXAM999
+    perfect_tests=sx/examproject-EXAM999
+    
+    prep_exam ${target} ${task} ${sourceT} ${sourceB}
+    
+    ## drop superfluous stuff
+    find sx/examproject-EXAM999 -name java? -type d -prune -exec rm -fr {} \;
+    find sx/examproject-EXAM999 -name target -type d -prune -exec rm -fr {} \;
+    
+    ## 900 exam initial project both as received by student
+    ## student did nothing.
+    target=sx/examproject-EXAM900
+    sourceB=examproject
+    sourceT=examproject
+    prep_exam ${target} ${task} ${sourceT} ${sourceB}
+    
+    
+    ## assuming examproject has ignores enabled
+    ## 0A perfect solution, no tests
+    target=sx/examproject-EXAM901
+    sourceT=examproject
+    sourceB=${perfect_solution}
+    prep_exam ${target} ${task} ${sourceT} ${sourceB}
+    
+    ## I0 exam code, @Ignore commented, all tests fail
+    target=sx/examproject-EXAM902
+    stripsolution2 ${target}/
+    
+    ## OA, test stripped, no ignores, business solution
+    target=sx/examproject-EXAM903
+    sourceT=sx/examproject-EXAM902
+    sourceB=${perfect_solution}
+    prep_exam ${target} ${task} ${sourceT} ${sourceB}
+    
+    ## GA unconditional green tests, with perfect solution
+    ## comment out all fails from initial tests
+    target=sx/examproject-EXAM904
+    sourceT=sx/examproject-EXAM902
+    sourceB=${perfect_solution}
+    prep_exam ${target} ${task} ${sourceT} ${sourceB}
+    for i in $(grep -lre '[[:space:]]*Assert.fail' ${target} --include "*Test.java"); do
+	sed -e 's#Assert.fail#//Assert.fail#' $i > ${i}-new
+	mv ${i}-new ${i}
+    done
+    
+    
+    ##  G0 unconditional green tests, initial solution
+    target=sx/examproject-EXAM905
+    sourceT=sx/examproject-EXAM904
+    sourceB=examproject
+    prep_exam ${target} ${task} ${sourceT} ${sourceB}
+    
+    
+    ##  A0 correct tests, 0 solution
+    target=sx/examproject-EXAM906
+    sourceT=${perfect_tests}
+    sourceB=sx/examproject-EXAM902
+    prep_exam ${target} ${task} ${sourceT} ${sourceB}
+}
+
+
+# clean slate
+rm -fr sx
+mkdir -p sx
+
+## find all tasks and create sample exams to test correction tools
+for t in $(find examsolution -mindepth 1 -maxdepth 1 -type d); do
+    assignment=$(basename $t)
+    all_exam_combinations ${assignment}
+done
+
+exit 0
+
