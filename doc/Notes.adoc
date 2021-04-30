@@ -118,3 +118,10 @@ Kan ik een zipfile bouwen?
 Maak documentatie klaar in github
 
 = 30-04-2021: 0:00 – 1:00 Trello board opgezet en bijgewerkt
+
+Template Assignment in github classroom: 1. Assignment uit svn halen 2. in public of template repo zetten 3. selecteren bij het aanmaken van de repo +
+Test kunnen bij de on push event getriggered worden welke hier aangeroepen worden: + 
+
+"From your repository on GitHub, create a new file in the .github/workflows directory named github-actions-demo.yml."" 
+
+Hoe de actions gedefined en wanneer welke moeten worden aangeroepen worden moet ik nog uitzoeken
