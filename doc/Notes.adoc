@@ -39,7 +39,7 @@ curl -H "Content-Type: text/plain; charset=UTF-8" -X POST --data-binary @- https
 /home/hom/teambin/builder-mkpending ${REPOS}
 Nieuwe usecase: uit video halen
 
-= 02-04 9:00 – 9:30
+= 02-04 9:00 – 9:30 Meeting
 :showtitle:
 
 Maven compileer het spul, van compilatie moet rapport gemaakt worden en van testen moet een rapport gemaakt worden en code coverage rapport moet gemaakt worden +
@@ -55,7 +55,7 @@ Overgaan naar ASCIDOC in visual studio code
 Fontys regelen voor peerweb
 -	SonarQube (kijken naar mogelijkheid voor integratie aldarunner of opvolger van)
 
-= 09-04 9:00 – 9:30
+= 09-04 9:00 – 9:30 Meeting
 :showtitle:
 
 Github actions ff nakijken (onderzoekstraject) in de zin van bouwen van reportages van student projecten
@@ -89,7 +89,7 @@ https://developer.mozilla.org/nl/docs/Web/API/Canvas_API
 
 *WSDL* uitproberen(werkt volgens mij)
  
-image::WSL_Test.png[] 
+image::img/WSL_Test.png[] 
 
 *Bash script* draaien in Visual Studio code(weet niet direct waar)
 
@@ -97,3 +97,24 @@ image::WSL_Test.png[]
 
 *Notities in ADOC* netjes maken en uploaden(Gedaan)
 
+= 16-04 9:00 – 9:30 Meeting
+
+Notes fatsoeneren
+
+Script schrijven voor committen
+
+Maak een hello world(First contact week1) Kan ik een jacoco rapport draaien en publiceren => mogelijkheid( wordt gezipt en ergens neer gepleurd kan op canvas gegooid worden, en hypotese
+
+Formatten in svg gebruiken
+
+Activity diagram to be fabriceren
+1.	Huidige stand v zaken
+2.	Functioneel zelfde op GitHub?, wat is er nodig? Kom er achter door een poging te doen
+
+Trek first contact door GitHub heen (reportage en interpretatie van reportage)
+
+Kan ik een zipfile bouwen?
+
+Maak documentatie klaar in github
+
+= 30-04-2021: 0:00 – 1:00 Trello board opgezet en bijgewerkt
