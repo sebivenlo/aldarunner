@@ -125,3 +125,101 @@ Test kunnen bij de on push event getriggered worden welke hier aangeroepen worde
 "From your repository on GitHub, create a new file in the .github/workflows directory named github-actions-demo.yml."" 
 
 Hoe de actions gedefined en wanneer welke moeten worden aangeroepen worden moet ik nog uitzoeken
+
+best practices github classroom, workshop,  uitzoeken waar actions gedfininieerd kunnen worden, welke informatie uit github classroom, , uitzoeken hoe je met github actions maven kan draaien maven -p jaccoco, waar zijn resultaten van github actions te zien zijn, oplossingen moeten niet te zien zijn door andere te zien zijn, fraction erbij, canvas wegverkennen, testen draaien zoals op builder, 
+
+student toevoegen(hombergh, vd ham, mezelf) 
+
+Gedaan: student toegevoegd(link op teams gezet), github trello( project board gemaakt in github), Fractions toegevoegd
+
+= 7-5-2021
+
+Github actions self hosted runners, github packages(github tokens in een settings file), 
+Wat is github actions precies, Wat is github token(packages), 
+
+url SEBI mvn: https://maven.pkg.github.com/homberghp/*
+mvn
+
+Presentatie en uitnoding richard voor teammeeting
+
+.Template workflow:
+video::https://github.com/actions/starter-workflows/blob/055373ee0b531de9b779896c520d0555e7df48ae/ci/blank.yml
+
+.Github Packages(Registry):
+video::https://www.youtube.com/watch?v=N_-Cu9_2YAA
+
+.Github Packages(Registry):
+video::N_-Cu9_2YAA[youtube]
+
+Enabling sharing of packages that are to be trusted and that you can rely on
+Fully integrated with github
+Anyone with an account can publish registries
+Works with npm, maven, docker, ruby registry protocols.
+
+ci= continous integration
+
+Unless you have a personal access token, you get not directly get packages available from github
+ACCESS TOKENS can be given certain permissions. 16:10
+
+= 14-5-2021
+
+.Githubclassroom Setup tutorial : 
+video::https://www.youtube.com/watch?v=KXWXg68KpTY
+
+.Githubclassroom Setup tutorial : 
+video::KXWXg68KpTY[youtube]
+
+===DONE===
+
+Studen account bonajo(Gedaan), ook als member NB: deze accounts zijn niet gelinked aan de doorons ingevoerde namen, de studenten moeten zelf hun naam selecteren op het moment dat ze de uitnodiging accepteren, mocht de student dit fout doen, kun je het github account altijd unlinken
+
+Wat is er nodig van canvas om het aan t sluiten op classrooms(docenten moeten zelf hun policy bepalen voor gebruik van classrooms) => als er studenten geimporteerd zijn, kun je dan nog studenten toevoegen? 
+Antwoord = Via een CSV file wel, als het aan het Canavas systeem gelinked is, zul je het daar moeten regelen TODO plaatjes ter illustratie
+
+Activity diagram updaten(As Is & To Be) => testen verduidelijken, waar worden de tests vanaf gehaald(Gedaan)
+
+Maven project uitvoeren als normaal project maar kan de student bij de Action (die geen informatie prijsgeeft), kan de student de teacher tests inzien?(Staat de action gedefinieerd in de .github folder?)
+Anwtoord= Action staat gedefinieerd in je template assignment's repository, niet in je classroom, maar kun je in beginsel wel zien(Foto vanuit studenten persperctief), de vraag is, is dat erg? Een oplossing zou zijn om een action te schrijven die de testen uit een private repo haalt(plaatje bij van actionconcern)
+
+===DONE===
+
+===PROGRESS===
+
+Hoe worden de testresultaten vertaald naar canvas of een ander studentenadministratie systeem => 
+.autograding: 
+video::https://youtu.be/KXWXg68KpTY?t=702
+Antwoord= het lijkt erop dat je bij je testen punten can definieeren waarbij je de testen gedefinieerd in je template assignment kan laten draaien(plaatje)
+
+===PROGRESS===
+
+===PARKING===
+
+Zijn er Fontys policies die de integratie van Canvas tegenhouden => Eric Steffann kijken welke integraties wenselijk zijn, door spelen naar Van den Hombergh, Bonajo of Van den Ham en dan doorspelen.
+
+Hello world project publishen met Packages dat project kunnen gebruiken als dependency in studenten project(mvn deploy)
+.Creating Maven packages with github
+video::https://www.youtube.com/watch?v=MhzoxE7NdpI
+.Creating Maven packages with github
+video::MhzoxE7NdpI[youtube]
+
+Resource on how to deploy: https://docs.github.com/en/actions/guides/building-and-testing-java-with-maven
+
+===PARKING===
+
+===TODO===
+
+Fontys venlo moet op ruimen, is een repository van maven artefacts iedereen kan erbij, dat is een probleem => github packages hosten 
+
+Maven project met dependency gebaseerd op github packages  => volgende stap eventueel plugins(plug in voor mapper bijvoorbeeld)
+
+Continuous integration: Rekensommetje maken wat de kosten per student zijn
+
+Fallback scenario invullen: verder gaan met builder
+
+Lijst van stappen om een integratie te voltooien fabriceren
+
+Hoe maak je van een goed getest project een (template) assignment?
+
+===TODO===
+Githubclassroom timestamp: 12:16 - Building Maven with Githubactions
+https://github.com/DaveHoevenaars/ALDA_Runner_First_Contact/actions
