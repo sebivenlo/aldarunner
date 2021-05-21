@@ -171,10 +171,10 @@ video::KXWXg68KpTY[youtube]
 
 ===DONE===
 
-Studen account bonajo(Gedaan), ook als member NB: deze accounts zijn niet gelinked aan de doorons ingevoerde namen, de studenten moeten zelf hun naam selecteren op het moment dat ze de uitnodiging accepteren, mocht de student dit fout doen, kun je het github account altijd unlinken
+Studen account bonajo(Gedaan), ook als member NB: deze accounts zijn niet gelinked aan de door ons ingevoerde namen, de studenten moeten zelf hun naam selecteren op het moment dat ze de uitnodiging accepteren, mocht de student dit fout doen, kun je het github account altijd unlinken
 
-Wat is er nodig van canvas om het aan t sluiten op classrooms(docenten moeten zelf hun policy bepalen voor gebruik van classrooms) => als er studenten geimporteerd zijn, kun je dan nog studenten toevoegen? 
-Antwoord = Via een CSV file wel, als het aan het Canavas systeem gelinked is, zul je het daar moeten regelen TODO plaatjes ter illustratie
+Wat is er nodig van canvas om het aan te sluiten op classrooms(docenten moeten zelf hun policy bepalen voor gebruik van classrooms) => als er studenten geimporteerd zijn, kun je dan nog studenten toevoegen? 
+Antwoord = Via een CSV file wel, als het aan het Canavas systeem gelinked is, zul je het daar moeten regelen TODO plaatjes ter illustratie (sync knop canvas)
 
 Activity diagram updaten(As Is & To Be) => testen verduidelijken, waar worden de tests vanaf gehaald(Gedaan)
 
@@ -221,5 +221,5 @@ Lijst van stappen om een integratie te voltooien fabriceren
 Hoe maak je van een goed getest project een (template) assignment?
 
 ===TODO===
-Githubclassroom timestamp: 12:16 - Building Maven with Githubactions
+Githubclassroom timestamp: 12:16 - Building Maven with Githubactions 19:45 vorige
 https://github.com/DaveHoevenaars/ALDA_Runner_First_Contact/actions
