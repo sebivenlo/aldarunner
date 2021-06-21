@@ -81,17 +81,17 @@
     /></g
     ><g transform="translate(600,570)"
     ><rect x="0.5" y="0.5" clip-path="url(#clipPath3)" fill="none" width="98.5" rx="8" ry="8" height="38.5"
-      /><text x="20" font-size="14px" y="24.9844" clip-path="url(#clipPath3)" font-family="sans-serif" stroke="none" xml:space="preserve"
+      /><a href="https://github.com/DaveHoevenaars/boxofthings/runs/2692139674?check_suite_focus=true"><text x="20" font-size="14px" y="24.9844" clip-path="url(#clipPath3)" font-family="sans-serif" stroke="none" xml:space="preserve"
       >mvn build</text
-    ></g
+    ></a></g
     ><g fill="rgb(255,255,255)" fill-opacity="0" transform="translate(600,510)" stroke-opacity="0" stroke="rgb(255,255,255)"
     ><rect x="0.5" y="0.5" clip-path="url(#clipPath3)" width="98.5" rx="8" ry="8" height="38.5" stroke="none"
     /></g
     ><g transform="translate(600,510)"
     ><rect x="0.5" y="0.5" clip-path="url(#clipPath3)" fill="none" width="98.5" rx="8" ry="8" height="38.5"
-      /><text x="21" font-size="14px" y="24.9844" clip-path="url(#clipPath3)" font-family="sans-serif" stroke="none" xml:space="preserve"
+      /><a href="https://github.com/DaveHoevenaars/boxofthings/runs/2692139674?check_suite_focus=true"><text x="21" font-size="14px" y="24.9844" clip-path="url(#clipPath3)" font-family="sans-serif" stroke="none" xml:space="preserve"
       >checkout</text
-    ></g
+    ></a></g
     ><g transform="translate(850,160)"
     ><circle r="8.75" clip-path="url(#clipPath4)" cx="10.25" cy="10.25" stroke="none"
       /><circle fill="none" r="8.75" clip-path="url(#clipPath4)" cx="10.25" cy="10.25"
@@ -166,33 +166,33 @@
     /></g
     ><g transform="translate(600,650)"
     ><rect x="0.5" y="0.5" clip-path="url(#clipPath3)" fill="none" width="98.5" rx="8" ry="8" height="38.5"
-      /><text x="16" font-size="14px" y="24.9844" clip-path="url(#clipPath3)" font-family="sans-serif" stroke="none" xml:space="preserve"
+      /><a href="https://github.com/DaveHoevenaars/boxofthings/runs/2692139674?check_suite_focus=true"><text x="16" font-size="14px" y="24.9844" clip-path="url(#clipPath3)" font-family="sans-serif" stroke="none" xml:space="preserve"
       >publication</text
-    ></g
+    ></a></g
     ><g fill="rgb(255,255,255)" fill-opacity="0" transform="translate(600,430)" stroke-opacity="0" stroke="rgb(255,255,255)"
     ><rect x="0.5" y="0.5" clip-path="url(#clipPath3)" width="98.5" rx="8" ry="8" height="38.5" stroke="none"
     /></g
     ><g transform="translate(600,430)"
     ><rect x="0.5" y="0.5" clip-path="url(#clipPath3)" fill="none" width="98.5" rx="8" ry="8" height="38.5"
-      /><text x="12" font-size="14px" y="24.9844" clip-path="url(#clipPath3)" font-family="sans-serif" stroke="none" xml:space="preserve"
+      /><a href="https://github.com/DaveHoevenaars/boxofthings/runs/2692139674?check_suite_focus=true"><text x="12" font-size="14px" y="24.9844" clip-path="url(#clipPath3)" font-family="sans-serif" stroke="none" xml:space="preserve"
       >build proces</text
-    ></g
+    ></a></g
     ><g fill="rgb(255,255,255)" fill-opacity="0" transform="translate(600,350)" stroke-opacity="0" stroke="rgb(255,255,255)"
     ><rect x="0.5" y="0.5" clip-path="url(#clipPath3)" width="98.5" rx="8" ry="8" height="38.5" stroke="none"
     /></g
     ><g transform="translate(600,350)"
     ><rect x="0.5" y="0.5" clip-path="url(#clipPath3)" fill="none" width="98.5" rx="8" ry="8" height="38.5"
-      /><text x="30" font-size="14px" y="24.9844" clip-path="url(#clipPath3)" font-family="sans-serif" stroke="none" xml:space="preserve"
+      /><a href="https://github.com/DaveHoevenaars/boxofthings/actions"><text x="30" font-size="14px" y="24.9844" clip-path="url(#clipPath3)" font-family="sans-serif" stroke="none" xml:space="preserve"
       >queue</text
-    ></g
+    ></a></g
     ><g fill="rgb(255,255,255)" fill-opacity="0" transform="translate(540,270)" stroke-opacity="0" stroke="rgb(255,255,255)"
     ><rect x="0.5" y="0.5" clip-path="url(#clipPath3)" width="98.5" rx="8" ry="8" height="38.5" stroke="none"
     /></g
     ><g transform="translate(540,270)"
-    ><rect x="0.5" y="0.5" clip-path="url(#clipPath3)" fill="none" width="98.5" rx="8" ry="8" height="38.5"
-      /><text x="30" font-size="14px" y="24.9844" clip-path="url(#clipPath3)" font-family="sans-serif" stroke="none" xml:space="preserve"
+    ><rect x="0.5" y="0.5" clip-path="url(#clipPath3)" fill="none" width="98.5" rx="8" ry="8" height="38.5" 
+      /><a href="https://github.com/DaveHoevenaars/boxofthings/actions/runs/904892757/workflow"><text x="30" font-size="14px" y="24.9844" clip-path="url(#clipPath3)" font-family="sans-serif" stroke="none" xml:space="preserve" 
       >trigger</text
-    ></g
+    ></a></g
     ><g fill="rgb(255,255,255)" fill-opacity="0" transform="translate(110,170)" stroke-opacity="0" stroke="rgb(255,255,255)"
     ><rect x="0.5" y="0.5" clip-path="url(#clipPath3)" width="98.5" rx="8" ry="8" height="38.5" stroke="none"
     /></g
