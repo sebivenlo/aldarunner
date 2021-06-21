@@ -169,7 +169,7 @@ video::https://www.youtube.com/watch?v=KXWXg68KpTY
 .Githubclassroom Setup tutorial : 
 video::KXWXg68KpTY[youtube]
 
-===DONE===
+[black big]*DONE* 
 
 Studen account bonajo(Gedaan), ook als member NB: deze accounts zijn niet gelinked aan de door ons ingevoerde namen, de studenten moeten zelf hun naam selecteren op het moment dat ze de uitnodiging accepteren, mocht de student dit fout doen, kun je het github account altijd unlinken
 
@@ -179,20 +179,21 @@ Antwoord = Via een CSV file wel, als het aan het Canavas systeem gelinked is, zu
 Activity diagram updaten(As Is & To Be) => testen verduidelijken, waar worden de tests vanaf gehaald(Gedaan)
 
 Maven project uitvoeren als normaal project maar kan de student bij de Action (die geen informatie prijsgeeft), kan de student de teacher tests inzien?(Staat de action gedefinieerd in de .github folder?)
-Anwtoord= Action staat gedefinieerd in je template assignment's repository, niet in je classroom, maar kun je in beginsel wel zien(Foto vanuit studenten persperctief), de vraag is, is dat erg? Een oplossing zou zijn om een action te schrijven die de testen uit een private repo haalt(plaatje bij van actionconcern)
+Anwtoord= Action staat gedefinieerd in je template assignment's repository, niet in je classroom, maar kun je in beginsel wel zien(Foto vanuit studenten persperctief), de vraag is, is dat erg? Een oplossing zou zijn om een action te schrijven die de testen uit een private repo haalt(plaatje bij van actionconcern) => De gene die de action definieerd, wordt zijn github token dan zichtbaar voor studenten?(advies vragen aan martijn bonajo)
 
-===DONE===
 
-===PROGRESS===
+[black big]*DONE*
+
+[black big]*PROGRESS*
 
 Hoe worden de testresultaten vertaald naar canvas of een ander studentenadministratie systeem => 
 .autograding: 
 video::https://youtu.be/KXWXg68KpTY?t=702
-Antwoord= het lijkt erop dat je bij je testen punten can definieeren waarbij je de testen gedefinieerd in je template assignment kan laten draaien(plaatje)
+Antwoord= het lijkt erop dat je bij je testen punten can definieeren waarbij je de testen gedefinieerd in je template assignment kan laten draaien(plaatje) => graden op basis van testen uit prive repository
 
-===PROGRESS===
+[black big]*PROGRESS*
 
-===PARKING===
+[black big]*PARKING*
 
 Zijn er Fontys policies die de integratie van Canvas tegenhouden => Eric Steffann kijken welke integraties wenselijk zijn, door spelen naar Van den Hombergh, Bonajo of Van den Ham en dan doorspelen.
 
@@ -204,15 +205,17 @@ video::MhzoxE7NdpI[youtube]
 
 Resource on how to deploy: https://docs.github.com/en/actions/guides/building-and-testing-java-with-maven
 
-===PARKING===
+Waar komen build artefacts(rapporten, jar files) terecht? surefire-report:report-only (bouwen met github actions)
 
-===TODO===
+[black big]*PARKING*
+
+[black big]*TODO*
 
 Fontys venlo moet op ruimen, is een repository van maven artefacts iedereen kan erbij, dat is een probleem => github packages hosten 
 
 Maven project met dependency gebaseerd op github packages  => volgende stap eventueel plugins(plug in voor mapper bijvoorbeeld)
 
-Continuous integration: Rekensommetje maken wat de kosten per student zijn
+Continuous integration: Rekensommetje maken wat de kosten per student zijn 
 
 Fallback scenario invullen: verder gaan met builder
 
@@ -220,6 +223,45 @@ Lijst van stappen om een integratie te voltooien fabriceren
 
 Hoe maak je van een goed getest project een (template) assignment?
 
-===TODO===
+Vraag aan martijnbonajo hoe dat werkt met die encrypte github tokens
+
+[black big]*TODO*
 Githubclassroom timestamp: 12:16 - Building Maven with Githubactions 19:45 vorige
 https://github.com/DaveHoevenaars/ALDA_Runner_First_Contact/actions
+
+Hoe filter je gepubliceerde studenten werk om penetratie scripts te voorkomen? => maven docker container 
+
+Gedaan
+
+Packing building : Moest versie naar 3.0.3 veranderen en in de action vermelden dat de pom file ergens anders stond => Probleem: kan connectie niet bouwen naar sebi, version mismatch gebruik zelf 3.0.3 => is gelukt maar heb de testen moeten verwijderen omdat ik sebi uit de pomfile gehaald
+
+sure fire report: https://github.com/marketplace/actions/surefire-report
+
+jacoco coverage draaien? => https://github.com/marketplace/actions/jacoco-report or https://github.com/marketplace/actions/jacoco-badge-generator
+=> cannot access gradlew, no such file or directory
+
+coverage report publishen via canvash, of mailen =>
+Coverage report is being mailed as standard to the user running the action report, however in the JaCoCO coverage report it is possible to set an emailaddress
+to which the csv should be mailed to.
+
+generic mapper opgave proberen met coverage report =>
+added lambda libarary, generic mapper has no solution in my local directory, have problems build maven in that project with the settings.xml
+
+mutatie coverage report draaien? conditional pit testen =>
+https://github.com/marketplace/actions/pr-landmine
+
+UOPDAATE NAAR PULL  assignmentVERANDEREN 
+
+osirix via teacher computer naar build server(solutions)  Deployment diagram
+
+Titel op activity diagram, => naam geven van build 
+
+SVGS linken naar documentatie
+
+martijn vragen naar de build artefacten
+
+research assignment stripper -> github actions
+
+DEMO voorbereiden voor toests
+
+Documentatie voorbereiden voor toets
