@@ -250,7 +250,7 @@ added lambda libarary, generic mapper has no solution in my local directory, hav
 mutatie coverage report draaien? conditional pit testen =>
 https://github.com/marketplace/actions/pr-landmine
 
-UOPDAATE NAAR PULL  assignmentVERANDEREN 
+UPDATE NAAR PULL  assignment veranderen  
 
 osirix via teacher computer naar build server(solutions)  Deployment diagram
 

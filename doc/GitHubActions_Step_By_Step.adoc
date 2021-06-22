@@ -1,0 +1,55 @@
+
+Setting up Github Actions:
+
+1:
+Create a assignment repository or have one available on GitHub.
+2:
+Make sure that in the pom.xml file the version is set to 3.0.3 or simply copy: <version>3.0.3</version>.
+3:
+If not present, create in to root directory a settings.xml file in which you put the following code:
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+    <profiles>
+        <profile>
+            <id>sebivenlo</id>
+            <repositories>
+                <repository>
+                    <id>fontysvenlo.org</id>
+                    <url>https://www.fontysvenlo.org/repository</url>
+                </repository>
+            </repositories>
+        </profile>
+    </profiles>
+    <activeProfiles>
+        <activeProfile>sebivenlo</activeProfile>
+    </activeProfiles>
+    <offline>false</offline>
+    <servers>
+        
+    </servers>
+</settings>
+You can find your own personal settings file at: C:\Users\Your_PC_Name\.m2\settings.xml
+4:
+Then navigate to your project repository on Github and go to actions
+5:
+Select Java with Maven as we will be using a Maven builder for this Step By Step Guide.
+6:
+This will build a template Maven builder, which will not run out of the box.
+If you navigate back to Actions and then to Java Cl with Maven it will show you the status of your Github Action.
+Which will show you it failed
+7:
+This is why we added the settings.xml earlier so we can use this to reach the sebi maven builder
+you can call this builder by adding these lines to the GitHub Action, replacing the steps with the same names:
+
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml --settings settings.xml
+    - name: Publish Test Report
+      if: ${{ always() }}
+      uses: scacap/action-surefire-report@v1
+
+Note that, this step also comes with a test report which will only provide you with any details about the tests, if they fail.
+Also if you click on your Java CI with Maven actions, you will find a button allowing you to rerun your job, but typically it will rerun
+after every Git push as we defined it as such.
+
+With all this done, you prepared your assignment for automated test reporting, which you can then directly use in GitHub Classrooms.
