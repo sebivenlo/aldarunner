@@ -48,8 +48,12 @@ you can call this builder by adding these lines to the GitHub Action, replacing 
       if: ${{ always() }}
       uses: scacap/action-surefire-report@v1
 
+The build artefacts can be found at the target directory of your assignment repository, (if you click on a job that has been completed, go to build, build with maven)
+and scroll down to the bottem you can see the jar-file placement for yourself.
+
 Note that, this step also comes with a test report which will only provide you with any details about the tests, if they fail.
-Also if you click on your Java CI with Maven actions, you will find a button allowing you to rerun your job, but typically it will rerun
+Also note that, if you click on your Java CI with Maven actions, you will find a button allowing you to rerun your job, but typically it will rerun
 after every Git push as we defined it as such.
+Lastly these Actions will be physically available on your assignment repository as a yaml file.
 
 With all this done, you prepared your assignment for automated test reporting, which you can then directly use in GitHub Classrooms.

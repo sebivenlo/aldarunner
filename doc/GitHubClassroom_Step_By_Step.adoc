@@ -1,0 +1,19 @@
+
+GithubClassroom_Step_by_Step
+1:
+If you havent already, create a classroom on https://classroom.github.com/classrooms
+2: 
+If you navigate to students you can add or remove students, either with canvas or by manually administrating them,
+sending out invitation links for the class room and linking their Github accounts to the users you defined as students.
+3:
+Go to assignments and select new assignment.
+4:
+Fill in the fields and proceed to the next page.
+5:
+Here you will be able to select the assignment that you want to give to your students.
+In order to do this make sure that you marked your assignment as a template repository,
+this can be done in the settings menu of your assignment repository.
+Also note that your repository must either public or in the same organization as the classroom.
+After that you can select autograding tests and the assignment can be created.
+6:
+When you go to your assignment there will be an invite link available which will allow you to invite students to your assignment.
