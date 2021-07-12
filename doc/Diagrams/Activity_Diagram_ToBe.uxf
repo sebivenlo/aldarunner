@@ -80,48 +80,26 @@ valign=top</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
-    <id>UMLState</id>
-    <coordinates>
-      <x>600</x>
-      <y>430</y>
-      <w>100</w>
-      <h>40</h>
-    </coordinates>
-    <panel_attributes>build proces</panel_attributes>
-    <additional_attributes/>
-  </element>
-  <element>
     <id>Relation</id>
     <coordinates>
       <x>640</x>
       <y>380</y>
       <w>30</w>
-      <h>70</h>
+      <h>120</h>
     </coordinates>
     <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>10.0;50.0;10.0;10.0</additional_attributes>
+    <additional_attributes>10.0;100.0;10.0;10.0</additional_attributes>
   </element>
   <element>
     <id>UMLState</id>
     <coordinates>
       <x>600</x>
-      <y>650</y>
+      <y>630</y>
       <w>100</w>
       <h>40</h>
     </coordinates>
     <panel_attributes>publication</panel_attributes>
     <additional_attributes/>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>550</x>
-      <y>460</y>
-      <w>120</w>
-      <h>210</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>90.0;190.0;90.0;170.0;10.0;170.0;10.0;30.0;100.0;30.0;100.0;10.0</additional_attributes>
   </element>
   <element>
     <id>UMLSpecialState</id>
@@ -295,59 +273,26 @@ valign=top</panel_attributes>
     <additional_attributes>10.0;110.0;10.0;10.0;150.0;10.0</additional_attributes>
   </element>
   <element>
-    <id>UMLState</id>
-    <coordinates>
-      <x>600</x>
-      <y>510</y>
-      <w>100</w>
-      <h>40</h>
-    </coordinates>
-    <panel_attributes>checkout</panel_attributes>
-    <additional_attributes/>
-  </element>
-  <element>
     <id>Relation</id>
     <coordinates>
-      <x>660</x>
-      <y>460</y>
+      <x>640</x>
+      <y>560</y>
       <w>30</w>
-      <h>70</h>
+      <h>90</h>
     </coordinates>
     <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>10.0;50.0;10.0;10.0</additional_attributes>
-  </element>
-  <element>
-    <id>UMLState</id>
-    <coordinates>
-      <x>600</x>
-      <y>570</y>
-      <w>100</w>
-      <h>40</h>
-    </coordinates>
-    <panel_attributes>mvn build</panel_attributes>
-    <additional_attributes/>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>660</x>
-      <y>540</y>
-      <w>30</w>
-      <h>50</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>10.0;30.0;10.0;10.0</additional_attributes>
+    <additional_attributes>10.0;70.0;10.0;10.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
       <x>400</x>
-      <y>680</y>
+      <y>660</y>
       <w>270</w>
-      <h>50</h>
+      <h>70</h>
     </coordinates>
     <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>10.0;30.0;10.0;10.0;250.0;10.0</additional_attributes>
+    <additional_attributes>10.0;50.0;10.0;30.0;250.0;30.0;250.0;10.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
@@ -359,17 +304,6 @@ valign=top</panel_attributes>
     </coordinates>
     <panel_attributes>lt=&lt;-</panel_attributes>
     <additional_attributes>10.0;30.0;10.0;10.0</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>660</x>
-      <y>600</y>
-      <w>30</w>
-      <h>80</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;-</panel_attributes>
-    <additional_attributes>10.0;60.0;10.0;10.0</additional_attributes>
   </element>
   <element>
     <id>UMLState</id>
@@ -402,6 +336,31 @@ valign=top</panel_attributes>
       <h>30</h>
     </coordinates>
     <panel_attributes>Activity = SVN Checkin &amp; Push Assignments</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>600</x>
+      <y>480</y>
+      <w>100</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>build
+symbol=substate</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>780</x>
+      <y>710</y>
+      <w>170</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>Activity_Diagram_ToBe
+fontsize=10
+lw=0</panel_attributes>
     <additional_attributes/>
   </element>
 </diagram>

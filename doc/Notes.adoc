@@ -265,3 +265,59 @@ research assignment stripper -> github actions
 DEMO voorbereiden voor toests
 
 Documentatie voorbereiden voor toets
+
+25-06-2021 14:00
+
+https://www.youtube.com/watch?v=JMHs5lYpvAM
+
+2-7-2021
+
+zelf sturen, moet een presentatie maken, presentatie kan alles omvatten en een verslag
+
+notities omzetten naar vraag stellen
+
+in kaart brengen hoe welke workflows, met eeng eschikt diagrma type(Activity diagram) interacties met student en docent met het systeem in kaart brengt
+
+Hoe er automatisch een resultaat kan onstaan van uit meerdere metingen kan onstaan.
+
+oplossing moet geheim blijven en testne moeten ook geheim blijven
+
+eigen instantie van actions an martijn bonajo meenemen
+
+begin situatie en probleem stelling -> mogelijke weg tot oplossing => hoe die acties aflopen => hoe die eis van geheim houding meegenomen kan worden.
+
+diagram maken van hoe de tests worden uitgevoerd
+
+vragen nog niet in de presentatie beantwoorden()
+
+presentatie sturen van tussentijds resultaat
+
+diagrammen ff checken tobe / as is
+
+9/7
+
+dashboard term gebruik in verslag
+
+verslag maken, er kan een helehoop met gibhub, koppelen met canvas is mogelijk maar niet onderzocht, 
+
+covert houden kan niet met github actions, want dat zou zichtbaar zijn voor student, tenzij je die actions uitvoert in eigen infrastructuur of cloud => moet met build server in eigen beheer,
+
+bouw process kan uitbereiden naar extra stapppen
+
+bouw proces zou voor tentamens en huiswerk gebruikt kunnen worden, met als belangrijk voordeel dat de huiswerk fase de beta test wordt, dat de kans dat het bij het tentamen goedgaat toeneemt
+
+Zelf onderhouden en werken aan bouwscrips, pom files test script onderhoud competenties van studenten, zodat ze problemen die studenten ervaren ook op kunnen lossen
+
+Github actions gebruikt zeer waarschijnlijk een of andere ratelimiter.
+
+Ratelimiter zou de snelheid waarmee een tentamen nagekeken wordt aanzienlijk kunnen beperken
+
+
+
+hoe in de toekomst automatische correcties plaats kunnen vinden bij fontys
+
+verstandig om het testen uit te voeren in een container met weinig tot geen rechten
+
+publiceren van artefacts van studenten moeten gefiltered worden om malware van studenten te vermijden
+
+Oplossing is overdraagbaar naar andere vakken (UNPL,DATABASE,PPAR)
