@@ -321,3 +321,68 @@ verstandig om het testen uit te voeren in een container met weinig tot geen rech
 publiceren van artefacts van studenten moeten gefiltered worden om malware van studenten te vermijden
 
 Oplossing is overdraagbaar naar andere vakken (UNPL,DATABASE,PPAR)
+
+JaCoCo pomfile inclusion:
+<build>
+  <plugins>
+    <plugin>
+      <groupId>org.jacoco</groupId>
+      <artifactId>jacoco-maven-plugin</artifactId>
+      <version>0.8.6</version>
+      <executions>
+        <execution>
+          <goals>
+            <goal>prepare-agent</goal>
+          </goals>
+        </execution>
+        <execution>
+          <id>generate-code-coverage-report</id>
+          <phase>test</phase>
+          <goals>
+            <goal>report</goal>
+          </goals>
+        </execution>
+      </executions>
+      </plugin>
+  </plugins>
+</build>
+
+src: https://github.com/marketplace/actions/jacoco-badge-generator
+
+Pitest pomfile inclusion:
+<plugin>
+    <groupId>org.pitest</groupId>
+    <artifactId>pitest-maven</artifactId>
+    <version>LATEST</version>
+    <configuration>
+        <targetClasses>
+            <param>com.your.package.root.want.to.mutate*</param>
+        </targetClasses>
+        <targetTests>
+            <param>com.your.package.root*</param>
+        </targetTests>
+    </configuration>
+</plugin>
+
+run cmd to define in GitHub actions: mvn org.pitest:pitest-maven:mutationCoverage
+
+src: https://pitest.org/quickstart/maven/
+
+Notes meeting Bonajo:
+
+Hidden teacher test: Op een organization Secrets aanmaken: 
+In GitHub actions kan je secrets gebruiken, kun je ook met classrooms gebruiken(repositories kunnen dat gebruiken)
+Studenten kunnen de Secrets wel zien, maar niet gebruiken.
+
+Met een secret can je artefacts binnen halen die je nodig hebt => die kun je gebruiken voor de teacher tests.
+
+Als je autograding bij classrooms aan hebt staan, dan zou je op het dashboard terug kunnen zien dat ze met de tests getempered hebben. Er is dan een Temperseal die gebroken kan worden.
+
+Maar het blijft een Linux omgeving dus er zijn manieren te bedenken om die teacher tests binnen te halen, zoals Catten?
+
+GitHub Secrets:
+https://youtu.be/3bz0IR-GDIw
+
+Maven commands: 
+mvn -P pit test pitest:mutationCoverage
+mvn -B -P jacoco test jacoco:report --file pom.xml --settings settings.xml
